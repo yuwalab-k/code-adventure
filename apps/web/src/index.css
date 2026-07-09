@@ -39,18 +39,32 @@ main {
   padding: 24px;
 }
 
-main.map-page {
-  max-width: 840px;
+/* Map/room pages: the Phaser canvas fills the whole viewport, game-style
+   (like Gather) — no page chrome, no scroll, UI is overlaid on top. */
+main.game-page {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
 }
 
-.world-map-canvas {
-  overflow-x: auto;
-  border-radius: 8px;
-  border: 1px solid var(--color-border);
+.game-canvas-fullscreen {
+  position: absolute;
+  inset: 0;
 }
 
-.world-map-canvas canvas {
+.game-canvas-fullscreen canvas {
   display: block;
+}
+
+.game-loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
 }
 
 button {
@@ -99,51 +113,9 @@ button {
   font-size: 14px;
 }
 
-.map-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  padding: 12px;
-  background: var(--color-header-bg);
-  border-radius: 8px;
-}
-
-.map-header nav {
-  display: flex;
-  gap: 12px;
-}
-
-.map-node-list {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.map-node-list li {
-  padding: 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-}
-
-.map-node-list li.locked {
-  opacity: 0.5;
-}
-
-.map-node-list li.cleared {
-  border-color: var(--color-correct);
-}
-
 @media (max-width: 700px) {
   main {
     padding: 12px;
-  }
-  .map-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
   }
 }
 
@@ -340,24 +312,6 @@ button {
 
 /* --- problem room --- */
 
-.room-canvas {
-  overflow-x: auto;
-  border-radius: 8px;
-  border: 1px solid var(--color-border);
-  margin: 12px 0;
-}
-
-.room-canvas canvas {
-  display: block;
-  margin: 0 auto;
-}
-
-.fallback-map-link {
-  display: inline-block;
-  font-size: 12px;
-  opacity: 0.7;
-}
-
 .panel-header {
   display: flex;
   align-items: center;
@@ -375,24 +329,46 @@ button {
   font-family: var(--font-body);
 }
 
-/* --- problem page HUD --- */
+/* --- game menu (corner tap button + dropdown, replaces a webpage navbar) --- */
 
-.hud-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.game-menu-button {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 600;
   background: var(--color-console-bg);
   color: #fff;
+  border: 2px solid #fff;
   border-radius: 8px;
-  padding: 8px 12px;
-  margin: 12px 0;
-  font-size: 13px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-family: var(--font-body);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
 }
 
-.hud-level {
+.game-menu-panel {
+  position: fixed;
+  top: 60px;
+  right: 12px;
+  z-index: 600;
+  width: 220px;
+  background: var(--color-console-bg);
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.game-menu-name {
+  margin: 0 0 8px;
   font-weight: bold;
+}
+
+.game-menu-stat {
+  margin: 6px 0 12px;
+  font-size: 13px;
   color: var(--color-emphasis);
-  flex: 0 0 auto;
 }
 
 .hud-xp-bar {
@@ -409,9 +385,29 @@ button {
   transition: width 0.4s ease;
 }
 
-.hud-coins {
-  flex: 0 0 auto;
-  color: var(--color-emphasis);
+.game-menu-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.game-menu-links a,
+.game-menu-links button {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  background: #3a3455;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 14px;
+  font-family: var(--font-body);
+}
+
+.game-menu-links a:hover,
+.game-menu-links button:hover {
+  background: #4a4372;
 }
 
 /* --- reward / level-up feedback --- */
@@ -454,12 +450,16 @@ button {
 }
 
 .clear-reward-toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 700;
   background: var(--color-console-bg);
   color: #fff;
   border: 2px solid var(--color-emphasis);
   border-radius: 10px;
   padding: 14px 16px;
-  margin: 16px 0;
   text-align: center;
 }
 
@@ -676,9 +676,3 @@ button {
   }
 }
 
-/* --- room intro --- */
-
-.room-intro {
-  color: var(--color-accent);
-  font-size: 13px;
-}

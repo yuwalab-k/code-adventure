@@ -13,6 +13,8 @@ const ROOM_WIDTH = 300;
 const ROOM_HEIGHT = 680;
 const TOUCH_RADIUS = 30;
 const MOVE_SPEED = 140;
+const ARRIVE_RADIUS = 6;
+const ZOOM = 1.6;
 const DOOR_X = 150;
 const DOOR_Y = 40;
 
@@ -42,6 +44,7 @@ export class RoomScene extends Phaser.Scene {
   private spotShapes: Record<string, Phaser.GameObjects.Shape> = {};
   private spotData: Record<string, RoomSpot> = {};
   private entered = false;
+  private moveTarget: Phaser.Math.Vector2 | null = null;
 
   constructor() {
     super("RoomScene");
@@ -54,6 +57,7 @@ export class RoomScene extends Phaser.Scene {
 
   create() {
     this.entered = false;
+    this.moveTarget = null;
     this.spotPositions = [];
     this.spotShapes = {};
     this.spotData = {};
@@ -92,8 +96,18 @@ export class RoomScene extends Phaser.Scene {
 
     this.cursors = this.input.keyboard!.createCursorKeys();
 
+    // Tap/click a spot in the room to walk there — smartphone-game style
+    // control, in addition to arrow keys for desktop.
+    this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+      const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+      this.moveTarget = new Phaser.Math.Vector2(world.x, world.y);
+    });
+
     this.cameras.main.setBounds(0, 0, ROOM_WIDTH, ROOM_HEIGHT);
+    this.cameras.main.setZoom(ZOOM);
     this.cameras.main.startFollow(this.player, true, 0.1, 0.15);
+
+    this.scale.on("resize", () => this.cameras.main.setZoom(ZOOM));
   }
 
   private colorFor(spot: RoomSpot): number {
@@ -137,10 +151,27 @@ export class RoomScene extends Phaser.Scene {
     const body = this.player.body as Phaser.Physics.Arcade.Body;
     body.setVelocity(0);
 
-    if (this.cursors.left.isDown) body.setVelocityX(-MOVE_SPEED);
-    else if (this.cursors.right.isDown) body.setVelocityX(MOVE_SPEED);
-    if (this.cursors.up.isDown) body.setVelocityY(-MOVE_SPEED);
-    else if (this.cursors.down.isDown) body.setVelocityY(MOVE_SPEED);
+    const keyDown =
+      this.cursors.left.isDown || this.cursors.right.isDown || this.cursors.up.isDown || this.cursors.down.isDown;
+
+    if (keyDown) {
+      this.moveTarget = null;
+      if (this.cursors.left.isDown) body.setVelocityX(-MOVE_SPEED);
+      else if (this.cursors.right.isDown) body.setVelocityX(MOVE_SPEED);
+      if (this.cursors.up.isDown) body.setVelocityY(-MOVE_SPEED);
+      else if (this.cursors.down.isDown) body.setVelocityY(MOVE_SPEED);
+    } else if (this.moveTarget) {
+      const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.moveTarget.x, this.moveTarget.y);
+      if (dist < ARRIVE_RADIUS) {
+        this.moveTarget = null;
+      } else {
+        this.physics.velocityFromRotation(
+          Phaser.Math.Angle.Between(this.player.x, this.player.y, this.moveTarget.x, this.moveTarget.y),
+          MOVE_SPEED,
+          body.velocity,
+        );
+      }
+    }
 
     const bob = Math.sin(this.time.now / 300) * 3;
     this.mascot.x = Phaser.Math.Linear(this.mascot.x, this.player.x - 18, 0.08);

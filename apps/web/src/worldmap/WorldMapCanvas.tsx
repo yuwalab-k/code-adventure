@@ -23,11 +23,14 @@ export function WorldMapCanvas({
 
     const game = new Phaser.Game({
       type: Phaser.AUTO,
-      width: 800,
-      height: 480,
       parent: containerRef.current,
       backgroundColor: "#fbf9f5",
       pixelArt: true,
+      scale: {
+        mode: Phaser.Scale.RESIZE,
+        width: window.innerWidth,
+        height: window.innerHeight,
+      },
       physics: { default: "arcade", arcade: { gravity: { x: 0, y: 0 }, debug: false } },
       scene: [WorldMapScene],
     });
@@ -48,5 +51,5 @@ export function WorldMapCanvas({
     gameRef.current?.registry.set("nodes", nodes);
   }, [nodes]);
 
-  return <div ref={containerRef} className="world-map-canvas" />;
+  return <div ref={containerRef} className="game-canvas-fullscreen" />;
 }

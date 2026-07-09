@@ -17,11 +17,11 @@ function HomeRedirect() {
   return <Navigate to={user?.role === "admin" ? "/admin" : "/map"} replace />;
 }
 
-// マップ上ではロボットくんがプレイヤーに追従して常に見えているので、
+// マップ・問題部屋ではロボットくんがプレイヤーに追従して常に見えているので、
 // 右下固定のマスコットは表示すると二重になるため隠す。
 export function GlobalMascot() {
   const location = useLocation();
-  if (location.pathname.startsWith("/map")) return null;
+  if (location.pathname.startsWith("/map") || location.pathname.startsWith("/problems/")) return null;
   return <Mascot />;
 }
 

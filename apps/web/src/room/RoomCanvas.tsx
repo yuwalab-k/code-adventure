@@ -23,11 +23,14 @@ export function RoomCanvas({
 
     const game = new Phaser.Game({
       type: Phaser.AUTO,
-      width: 300,
-      height: 360,
       parent: containerRef.current,
       backgroundColor: "#fbf9f5",
       pixelArt: true,
+      scale: {
+        mode: Phaser.Scale.RESIZE,
+        width: window.innerWidth,
+        height: window.innerHeight,
+      },
       physics: { default: "arcade", arcade: { gravity: { x: 0, y: 0 }, debug: false } },
       scene: [RoomScene],
     });
@@ -48,5 +51,5 @@ export function RoomCanvas({
     gameRef.current?.registry.set("spots", spots);
   }, [spots]);
 
-  return <div ref={containerRef} className="room-canvas" />;
+  return <div ref={containerRef} className="game-canvas-fullscreen" />;
 }

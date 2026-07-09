@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { useMascot } from "../mascot/MascotContext";
 import { useAuth } from "../auth/AuthContext";
 import { PROBLEM_SCREEN_TIPS } from "../mascot/sceneTips";
-import { xpBarPercent } from "../lib/levels";
 import { ExplanationCarousel, type ExplanationCard } from "../problems/ExplanationCarousel";
 import { SmallBossBattle } from "../problems/SmallBossBattle";
 import type { CheckpointQuestion } from "../problems/CheckpointQuiz";
 import { RoomCanvas } from "../room/RoomCanvas";
 import type { RoomSpot } from "../room/RoomScene";
+import { GameMenu } from "../game/GameMenu";
 
 const SCREENS = ["s1", "s2", "s3", "s4", "s5", "s6", "s7"] as const;
 type Screen = (typeof SCREENS)[number];
@@ -200,26 +200,8 @@ export function ProblemPage() {
   }));
 
   return (
-    <main className="problem-page room-page">
-      <Link to="/map" className="fallback-map-link">
-        地図へ戻る
-      </Link>
-
-      {user && (
-        <div className="hud-bar">
-          <span className="hud-level">Lv.{user.level}</span>
-          <div className="hud-xp-bar">
-            <div className="hud-xp-fill" style={{ width: `${xpBarPercent(user.xp)}%` }} />
-          </div>
-          <span className="hud-coins">{user.coins} コイン</span>
-        </div>
-      )}
-
-      <h1>{problem.title}</h1>
-      <p>
-        ★{problem.difficulty} {tags.map((t) => t.name).join(" / ")}
-      </p>
-      <p className="room-intro">矢印キーで歩いて、モンスターや看板に近づこう。出口から歩いて出るとマップへ戻れるよ。</p>
+    <main className="game-page">
+      <GameMenu extraLinks={[{ label: "地図へ戻る", to: "/map" }]} />
 
       {levelUpFlash && <div className="level-up-banner">LEVEL UP! Lv.{user?.level}</div>}
 
@@ -247,11 +229,14 @@ export function ProblemPage() {
         <div className="battle-overlay">
           <div className="battle-box">
             <div className="panel-header">
-              <p className="battle-monster-name">問題</p>
+              <p className="battle-monster-name">{problem.title}</p>
               <button className="panel-close" onClick={closeSpot}>
                 部屋にもどる
               </button>
             </div>
+            <p>
+              ★{problem.difficulty} {tags.map((t) => t.name).join(" / ")}
+            </p>
             <p style={{ whiteSpace: "pre-wrap" }}>{problem.statementMd}</p>
             <h3>制約</h3>
             <p style={{ whiteSpace: "pre-wrap" }}>{problem.constraintsMd}</p>
