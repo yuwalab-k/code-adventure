@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { MASCOT_FRAMES, MASCOT_BODY, MASCOT_EYE } from "../mascot/frames";
 
 export function generatePixelTexture(
   scene: Phaser.Scene,
@@ -48,4 +49,14 @@ const PLAYER_PALETTE: Record<string, number> = {
 
 export function generatePlayerTexture(scene: Phaser.Scene, key = "player"): void {
   generatePixelTexture(scene, key, PLAYER_ROWS, PLAYER_PALETTE, 1.5);
+}
+
+const MASCOT_PALETTE: Record<string, number> = {
+  "1": Phaser.Display.Color.HexStringToColor(MASCOT_BODY).color,
+  "2": Phaser.Display.Color.HexStringToColor(MASCOT_EYE).color,
+  "3": Phaser.Display.Color.HexStringToColor(MASCOT_BODY).color,
+};
+
+export function generateMascotTexture(scene: Phaser.Scene, key = "mascot-companion"): void {
+  generatePixelTexture(scene, key, MASCOT_FRAMES.idle, MASCOT_PALETTE, 1.5);
 }

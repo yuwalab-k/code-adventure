@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { generatePlayerTexture } from "./pixelTexture";
+import { generatePlayerTexture, generateMascotTexture } from "./pixelTexture";
 
 export interface WorldMapNode {
   id: string;
@@ -26,6 +26,7 @@ interface DoorObject {
 
 export class WorldMapScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
+  private mascot!: Phaser.GameObjects.Sprite;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private doors: DoorObject[] = [];
   private entered = false;
@@ -36,6 +37,7 @@ export class WorldMapScene extends Phaser.Scene {
 
   preload() {
     generatePlayerTexture(this, "player");
+    generateMascotTexture(this, "mascot-companion");
   }
 
   create() {
@@ -62,6 +64,8 @@ export class WorldMapScene extends Phaser.Scene {
     this.player = this.physics.add.sprite(PLAZA_WIDTH / 2, PLAZA_HEIGHT - 60, "player");
     this.player.setCollideWorldBounds(true);
     this.physics.world.setBounds(0, 0, PLAZA_WIDTH, PLAZA_HEIGHT);
+
+    this.mascot = this.add.sprite(this.player.x - 20, this.player.y + 6, "mascot-companion");
 
     this.cursors = this.input.keyboard!.createCursorKeys();
 
@@ -105,6 +109,12 @@ export class WorldMapScene extends Phaser.Scene {
     else if (this.cursors.right.isDown) body.setVelocityX(MOVE_SPEED);
     if (this.cursors.up.isDown) body.setVelocityY(-MOVE_SPEED);
     else if (this.cursors.down.isDown) body.setVelocityY(MOVE_SPEED);
+
+    const bob = Math.sin(this.time.now / 300) * 3;
+    const targetX = this.player.x - 22;
+    const targetY = this.player.y + 8 + bob;
+    this.mascot.x = Phaser.Math.Linear(this.mascot.x, targetX, 0.08);
+    this.mascot.y = Phaser.Math.Linear(this.mascot.y, targetY, 0.08);
 
     if (this.entered) return;
 
