@@ -78,7 +78,7 @@ export function CheckpointQuiz({
   if (defeated) {
     return (
       <div className="checkpoint-quiz defeated boss-hit-flash">
-        小ボスをたおした！
+        たおした！
         {xpGained > 0 && <span className="xp-popup">+{xpGained} XP</span>}
       </div>
     );
@@ -86,7 +86,9 @@ export function CheckpointQuiz({
 
   return (
     <div className={`checkpoint-quiz ${hitFlash === "miss" ? "boss-miss-flash" : ""}`}>
-      <p className="checkpoint-question">{question.questionMd}</p>
+      <div className="monster-dialogue">
+        <p>{question.questionMd}</p>
+      </div>
       <div className="checkpoint-choices">
         {question.choices.map((choice) => (
           <button
@@ -94,7 +96,7 @@ export function CheckpointQuiz({
             disabled={mutation.isPending || cooldown}
             onClick={() => mutation.mutate(choice.choiceId)}
           >
-            {choice.text}
+            <span className="choice-cursor">▶</span> {choice.text}
           </button>
         ))}
       </div>

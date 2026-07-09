@@ -97,6 +97,8 @@ interface ClearBigBossResponse {
 }
 
 const BOSS_SCREENS: Screen[] = ["s2", "s4", "s6", "s7"];
+const MONSTER_INDEX: Record<string, number> = { s2: 1, s4: 2, s6: 3, s7: 4 };
+const MONSTER_LABEL: Record<string, string> = { s2: "モンスター1", s4: "モンスター2", s6: "モンスター3", s7: "ラスボス" };
 
 export function ProblemPage() {
   const { id } = useParams<{ id: string }>();
@@ -195,7 +197,10 @@ export function ProblemPage() {
 
   return (
     <main className="problem-page">
-      <Link to="/map">← マップへ戻る</Link>
+      <Link to="/map" className="exit-door">
+        <span className="exit-door-icon" />
+        出口
+      </Link>
 
       {user && (
         <div className="hud-bar">
@@ -244,7 +249,7 @@ export function ProblemPage() {
               </button>
               <span className="stage-node-label">
                 {SCREEN_LABELS[s]}
-                {isBoss && <em className="boss-tag">ボス</em>}
+                {isBoss && <em className="boss-tag">{MONSTER_LABEL[s]}</em>}
               </span>
             </div>
           );
@@ -254,6 +259,9 @@ export function ProblemPage() {
       <div key={screen} className={`screen-panel ${isBossScreen ? "boss-panel" : ""}`}>
       {screen === "s1" && (
         <section>
+          <p className="room-intro">
+            この部屋には4体のモンスターがいる。ひとつずつたおして、さいごの部屋を目指そう。
+          </p>
           <p style={{ whiteSpace: "pre-wrap" }}>{problem.statementMd}</p>
           <h3>制約</h3>
           <p style={{ whiteSpace: "pre-wrap" }}>{problem.constraintsMd}</p>
@@ -284,6 +292,9 @@ export function ProblemPage() {
             problemId={id!}
             questions={questionsFor("s2")}
             alreadyDefeated={bossStatus?.smallBosses.s2.defeated ?? false}
+            monsterIndex={MONSTER_INDEX.s2}
+            monsterLabel={MONSTER_LABEL.s2}
+            onAllDefeated={() => goTo("s3")}
           />
         </section>
       )}
@@ -307,6 +318,9 @@ export function ProblemPage() {
             problemId={id!}
             questions={questionsFor("s4")}
             alreadyDefeated={bossStatus?.smallBosses.s4.defeated ?? false}
+            monsterIndex={MONSTER_INDEX.s4}
+            monsterLabel={MONSTER_LABEL.s4}
+            onAllDefeated={() => goTo("s5")}
           />
         </section>
       )}
@@ -330,20 +344,42 @@ export function ProblemPage() {
             problemId={id!}
             questions={questionsFor("s6")}
             alreadyDefeated={bossStatus?.smallBosses.s6.defeated ?? false}
+            monsterIndex={MONSTER_INDEX.s6}
+            monsterLabel={MONSTER_LABEL.s6}
+            onAllDefeated={() => goTo("s7")}
           />
         </section>
       )}
 
       {screen === "s7" && (
         <section>
-          {!s7Unlocked && <p>小ボスを3体たおすと、大ボス戦に挑戦できるよ。</p>}
+          {!s7Unlocked && <p>モンスター1〜3をたおすと、{MONSTER_LABEL.s7}があらわれるよ。</p>}
           {s7Unlocked && !bossStatus?.bigBoss.defeated && (
-            <>
-              <p>この問題専用の体験演習は準備中です。</p>
-              <button onClick={markBigBossDefeated}>大ボスをたおす(仮)</button>
-            </>
+            <div className="battle-overlay">
+              <div className="battle-box">
+                <div className="battle-monster-row">
+                  <div className="boss-sprite final" />
+                  <div className="battle-monster-info">
+                    <p className="battle-monster-name">{MONSTER_LABEL.s7}</p>
+                  </div>
+                </div>
+                <div className="monster-dialogue">
+                  <p>この問題専用の体験演習は準備中です。</p>
+                </div>
+                <div className="checkpoint-choices">
+                  <button onClick={markBigBossDefeated}>
+                    <span className="choice-cursor">▶</span> たたかう(仮)
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
-          {bossStatus?.bigBoss.defeated && <p>大ボスをたおした！この問題はクリア済みです。</p>}
+          {bossStatus?.bigBoss.defeated && (
+            <div className="monster-cleared">
+              <div className="boss-sprite defeated final" />
+              <p>{MONSTER_LABEL.s7}をたおした！この部屋はクリア済みです。</p>
+            </div>
+          )}
         </section>
       )}
       </div>
