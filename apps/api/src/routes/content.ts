@@ -15,6 +15,7 @@ import {
   codeReadingEntries,
 } from "../db/schema";
 import { requireAuth, type AuthEnv } from "../middleware/auth";
+import { shuffleChoices } from "../lib/checkpoint";
 
 const content = new Hono<AuthEnv>();
 
@@ -68,7 +69,13 @@ content.get("/problems/:id", async (c) => {
     solutions: problemSolutions,
     badSolutions: problemBadSolutions,
     explanationCards: cards,
-    checkpointQuestions: questions,
+    checkpointQuestions: questions.map((q) => ({
+      id: q.id,
+      screen: q.screen,
+      position: q.position,
+      questionMd: q.questionMd,
+      choices: shuffleChoices(q.choicesJson),
+    })),
     glossary: glossaryLinks.map((r) => r.glossary),
     tags: problemTagRows.map((r) => r.tag),
   });
