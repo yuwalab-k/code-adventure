@@ -73,6 +73,13 @@ interface BossStatus {
   cleared: boolean;
 }
 
+interface ProgressRow {
+  screen: Screen;
+  status: "not_started" | "in_progress" | "completed";
+}
+
+const BOSS_SCREENS: Screen[] = ["s2", "s4", "s6", "s7"];
+
 export function ProblemPage() {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
@@ -91,12 +98,19 @@ export function ProblemPage() {
     enabled: !!id,
   });
 
+  const { data: progressData } = useQuery({
+    queryKey: ["progress", id],
+    queryFn: () => apiFetch<{ progress: ProgressRow[] }>(`/progress/${id}`),
+    enabled: !!id,
+  });
+
   const markProgress = useMutation({
     mutationFn: (params: { screen: Screen; status: "in_progress" | "completed" }) =>
       apiFetch(`/progress/${id}/${params.screen}`, {
         method: "PUT",
         body: JSON.stringify({ status: params.status }),
       }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["progress", id] }),
   });
 
   useEffect(() => {
@@ -106,7 +120,26 @@ export function ProblemPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen, id]);
 
+  const visited = new Set((progressData?.progress ?? []).map((p) => p.screen));
+
+  // 小ボス3体+大ボスは、倒すまでは次の画面に進めない。
+  // それ以外の画面(問題文・可視化・速度比較)には勝敗がないので通過するだけでよい。
+  function isBossDefeated(s: Screen): boolean {
+    if (s === "s2" || s === "s4" || s === "s6") return bossStatus?.smallBosses[s].defeated ?? false;
+    return bossStatus?.bigBoss.defeated ?? false;
+  }
+
+  function isLocked(s: Screen): boolean {
+    const idx = SCREENS.indexOf(s);
+    for (let i = 0; i < idx; i++) {
+      const prior = SCREENS[i];
+      if (BOSS_SCREENS.includes(prior) && !isBossDefeated(prior)) return true;
+    }
+    return false;
+  }
+
   function goTo(next: Screen) {
+    if (isLocked(next)) return;
     markProgress.mutate({ screen, status: "completed" });
     setScreen(next);
   }
@@ -125,6 +158,10 @@ export function ProblemPage() {
   const questionsFor = (s: string) => checkpointQuestions.filter((q) => q.screen === s);
   const s7Unlocked = bossStatus?.bigBoss.unlocked ?? false;
 
+  const currentIndex = SCREENS.indexOf(screen);
+  const nextScreen = SCREENS[currentIndex + 1];
+  const canAdvance = !!nextScreen && !isLocked(nextScreen);
+
   return (
     <main className="problem-page">
       <Link to="/map">← マップへ戻る</Link>
@@ -133,16 +170,30 @@ export function ProblemPage() {
         ★{problem.difficulty} {tags.map((t) => t.name).join(" / ")}
       </p>
 
-      <nav className="problem-tabs">
-        {SCREENS.map((s) => (
-          <button
-            key={s}
-            className={`${screen === s ? "active" : ""} ${s === "s7" && !s7Unlocked ? "locked" : ""}`}
-            onClick={() => goTo(s)}
-          >
-            {SCREEN_LABELS[s]}
-          </button>
-        ))}
+      <nav className="stage-path">
+        {SCREENS.map((s, i) => {
+          const locked = isLocked(s);
+          const isBoss = BOSS_SCREENS.includes(s);
+          const cleared = isBoss ? isBossDefeated(s) : visited.has(s) && s !== screen;
+          const status = locked ? "locked" : s === screen ? "current" : cleared ? "cleared" : "open";
+          return (
+            <div className="stage-node-wrap" key={s}>
+              {i > 0 && <div className={`stage-link ${locked ? "locked" : ""}`} />}
+              <button
+                className={`stage-node ${status} ${isBoss ? "boss" : ""}`}
+                disabled={locked}
+                onClick={() => goTo(s)}
+                title={SCREEN_LABELS[s]}
+              >
+                {i + 1}
+              </button>
+              <span className="stage-node-label">
+                {SCREEN_LABELS[s]}
+                {isBoss && <em className="boss-tag">ボス</em>}
+              </span>
+            </div>
+          );
+        })}
       </nav>
 
       {screen === "s1" && (
@@ -238,6 +289,15 @@ export function ProblemPage() {
           )}
           {bossStatus?.bigBoss.defeated && <p>大ボスをたおした！この問題はクリア済みです。</p>}
         </section>
+      )}
+
+      {nextScreen && (
+        <div className="stage-advance">
+          <button className="next-button" disabled={!canAdvance} onClick={() => goTo(nextScreen)}>
+            つぎへ({SCREEN_LABELS[nextScreen]})
+          </button>
+          {!canAdvance && <p className="stage-advance-hint">小ボスをたおすと次に進めるよ。</p>}
+        </div>
       )}
     </main>
   );
