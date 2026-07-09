@@ -39,6 +39,20 @@ main {
   padding: 24px;
 }
 
+main.map-page {
+  max-width: 840px;
+}
+
+.world-map-canvas {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.world-map-canvas canvas {
+  display: block;
+}
+
 button {
   font-family: var(--font-body);
   cursor: pointer;

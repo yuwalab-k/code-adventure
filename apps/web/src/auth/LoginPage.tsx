@@ -3,13 +3,13 @@ import { Navigate } from "react-router-dom";
 import { useAuth, ApiError } from "./AuthContext";
 
 export function LoginPage() {
-  const { login, status } = useAuth();
+  const { login, status, user } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  if (status === "signed-in") return <Navigate to="/map" replace />;
+  if (status === "signed-in") return <Navigate to={user?.role === "admin" ? "/admin" : "/map"} replace />;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
