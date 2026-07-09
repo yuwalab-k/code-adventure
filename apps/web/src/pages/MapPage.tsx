@@ -38,7 +38,6 @@ export function MapPage() {
         </div>
         <nav>
           <Link to="/avatar">アバター</Link>
-          <Link to="/store">ストア</Link>
           <button onClick={() => logout()}>ログアウト</button>
         </nav>
       </header>
@@ -46,7 +45,11 @@ export function MapPage() {
       {isLoading && <p>よみこみちゅう...</p>}
 
       {data && (
-        <WorldMapCanvas nodes={data.nodes} onEnterProblem={(problemId) => navigate(`/problems/${problemId}`)} />
+        <WorldMapCanvas
+          nodes={data.nodes}
+          onEnterProblem={(problemId) => navigate(`/problems/${problemId}`)}
+          onEnterStore={() => navigate("/store")}
+        />
       )}
     </main>
   );

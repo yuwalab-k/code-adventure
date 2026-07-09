@@ -47,5 +47,5 @@ const PLAYER_PALETTE: Record<string, number> = {
 };
 
 export function generatePlayerTexture(scene: Phaser.Scene, key = "player"): void {
-  generatePixelTexture(scene, key, PLAYER_ROWS, PLAYER_PALETTE, 6);
+  generatePixelTexture(scene, key, PLAYER_ROWS, PLAYER_PALETTE, 1.5);
 }

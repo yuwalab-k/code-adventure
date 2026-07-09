@@ -5,14 +5,18 @@ import { WorldMapScene, type WorldMapNode } from "./WorldMapScene";
 export function WorldMapCanvas({
   nodes,
   onEnterProblem,
+  onEnterStore,
 }: {
   nodes: WorldMapNode[];
   onEnterProblem: (problemId: string) => void;
+  onEnterStore: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
-  const onEnterRef = useRef(onEnterProblem);
-  onEnterRef.current = onEnterProblem;
+  const onEnterProblemRef = useRef(onEnterProblem);
+  onEnterProblemRef.current = onEnterProblem;
+  const onEnterStoreRef = useRef(onEnterStore);
+  onEnterStoreRef.current = onEnterStore;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -29,7 +33,8 @@ export function WorldMapCanvas({
     });
 
     game.registry.set("nodes", nodes);
-    game.events.on("enter-problem", (problemId: string) => onEnterRef.current(problemId));
+    game.events.on("enter-problem", (problemId: string) => onEnterProblemRef.current(problemId));
+    game.events.on("enter-store", () => onEnterStoreRef.current());
 
     gameRef.current = game;
     return () => {
