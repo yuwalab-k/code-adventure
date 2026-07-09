@@ -1,0 +1,1 @@
+INSERT INTO users (id, username, password_hash, display_name, role, avatar_config, xp, level, coins, created_at, updated_at) VALUES ('e4cba6a3-5b91-4cab-82c9-671946a896eb', 'testadmin', '$2a$10$kw/7p06Wse95KagS1ItCa.lNWS55GJOgR0ut2kLScWfff.y9UAl/O', 'テスト管理者', 'admin', '{}', 0, 1, 0, '2026-07-09T06:16:20.144Z', '2026-07-09T06:16:20.144Z');

@@ -1,11 +1,13 @@
 import { Hono } from "hono";
+import type { AuthEnv } from "./middleware/auth";
+import auth from "./routes/auth";
+import content from "./routes/content";
 
-type Bindings = {
-  DB: D1Database;
-};
-
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<AuthEnv>();
 
 app.get("/api/health", (c) => c.json({ ok: true, service: "code-adventure-api" }));
+
+app.route("/api/auth", auth);
+app.route("/api", content);
 
 export default app;
