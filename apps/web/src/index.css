@@ -1,16 +1,13 @@
-/* Design tokens per SPEC.md 8 — colors, fonts, and the CRT scanline effect
-   carried over from the original code-sensei site. */
-
 :root {
-  --color-bg: #fff;
-  --color-text: #111;
-  --color-header-bg: #f5f5f5;
-  --color-accent: #1565c0; /* links, headings, active tabs */
-  --color-correct: #2e7d32; /* correct answers, cleared state */
-  --color-incorrect: #c62828; /* wrong answers */
-  --color-emphasis: #e65100; /* emphasis, warnings */
-  --color-console-bg: #050505; /* code/execution panels only */
-  --color-border: #ddd;
+  --color-bg: #fbf9f5;
+  --color-text: #2b2440;
+  --color-header-bg: #f1ecfb;
+  --color-accent: #7c3aed;
+  --color-correct: #16a34a;
+  --color-incorrect: #e11d48;
+  --color-emphasis: #f59e0b;
+  --color-console-bg: #201c33;
+  --color-border: #e4dff2;
 
   --font-body: 'DotGothic16', monospace;
   --font-code: 'Google Sans Code', ui-monospace, monospace;
@@ -25,23 +22,6 @@ body {
   font-family: var(--font-body);
   background: var(--color-bg);
   color: var(--color-text);
-  position: relative;
-}
-
-/* Subtle CRT scanline overlay, carried over from the original site. */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.035) 0px,
-    rgba(0, 0, 0, 0.035) 1px,
-    transparent 1px,
-    transparent 3px
-  );
 }
 
 a {
@@ -349,7 +329,7 @@ button {
   text-align: left;
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--color-bg);
 }
 
 .checkpoint-hint {
