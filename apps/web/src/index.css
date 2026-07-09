@@ -239,3 +239,126 @@ button {
     transform: rotate(15deg);
   }
 }
+
+/* --- problem page / boss battles --- */
+
+.problem-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 8px;
+}
+
+.problem-tabs button {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.problem-tabs button.active {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+}
+
+.problem-tabs button.locked {
+  opacity: 0.4;
+}
+
+.sample-box {
+  background: var(--color-console-bg);
+  color: #eee;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 8px 0;
+  overflow-x: auto;
+}
+
+.sample-box pre {
+  margin: 4px 0;
+  white-space: pre-wrap;
+}
+
+.code-box {
+  background: var(--color-console-bg);
+  color: #eee;
+  border-radius: 8px;
+  padding: 12px;
+  overflow-x: auto;
+}
+
+.explanation-card {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 12px 0;
+}
+
+.explanation-card.bad {
+  border-color: var(--color-incorrect);
+}
+.explanation-card.good {
+  border-color: var(--color-correct);
+}
+
+.carousel-nav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.small-boss {
+  border: 2px solid var(--color-emphasis);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 16px 0;
+}
+
+.small-boss.defeated {
+  border-color: var(--color-correct);
+}
+
+.boss-hp-bar {
+  height: 10px;
+  background: var(--color-border);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.boss-hp-fill {
+  height: 100%;
+  background: var(--color-emphasis);
+  transition: width 0.3s ease;
+}
+
+.checkpoint-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.checkpoint-choices button {
+  padding: 8px;
+  text-align: left;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.checkpoint-hint {
+  color: var(--color-emphasis);
+  font-size: 14px;
+}
+
+.checkpoint-quiz.defeated,
+.small-boss.defeated p {
+  color: var(--color-correct);
+  font-weight: bold;
+}

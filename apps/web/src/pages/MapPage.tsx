@@ -1,7 +1,10 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../auth/AuthContext";
+import { useMascot } from "../mascot/MascotContext";
+import { MAP_TIPS } from "../mascot/sceneTips";
 
 interface MapNode {
   id: string;
@@ -19,10 +22,16 @@ interface MapResponse {
 
 export function MapPage() {
   const { user, logout } = useAuth();
+  const { say } = useMascot();
   const { data, isLoading } = useQuery({
     queryKey: ["map"],
     queryFn: () => apiFetch<MapResponse>("/map"),
   });
+
+  useEffect(() => {
+    say(MAP_TIPS[Math.floor(Math.random() * MAP_TIPS.length)]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <main className="map-page">
@@ -43,9 +52,6 @@ export function MapPage() {
 
       {isLoading && <p>よみこみちゅう...</p>}
 
-      {/* Placeholder plaza — this becomes the Phaser world map (walk up to a
-          door to enter) once the game canvas is built; for now, a simple list
-          lets the rest of the stack (auth, progress, boss battles) be exercised. */}
       <ul className="map-node-list">
         {data?.nodes.map((node) => (
           <li key={node.id} className={node.locked ? "locked" : node.cleared ? "cleared" : "unlocked"}>

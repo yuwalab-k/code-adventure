@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { MASCOT_FRAMES, PALETTE } from "./frames";
+import { MASCOT_FRAMES, colorFor } from "./frames";
 import { MASCOT_TRIVIA } from "./trivia";
 import { useMascot } from "./MascotContext";
 
@@ -9,6 +9,10 @@ const CANVAS_SIZE = CELL_SIZE * GRID_SIZE;
 
 type Trick = "dash-left" | "dash-up" | "spin" | "dance" | null;
 
+function randomTrivia(): string {
+  return MASCOT_TRIVIA[Math.floor(Math.random() * MASCOT_TRIVIA.length)];
+}
+
 export function Mascot() {
   const { mood, message } = useMascot();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -17,7 +21,6 @@ export function Mascot() {
   const [speech, setSpeech] = useState<string | null>(null);
   const [bigCenter, setBigCenter] = useState(false);
 
-  // Idle blink, only while no mood override (happy/sad) is active.
   useEffect(() => {
     if (mood !== "idle") return;
     const interval = setInterval(() => {
@@ -28,48 +31,56 @@ export function Mascot() {
   }, [mood]);
 
   useEffect(() => {
+    const interval = setInterval(() => {
+      if (mood === "idle" && Math.random() < 0.4) triggerTrick();
+    }, 24000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mood]);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const frame = mood === "idle" && blinking ? MASCOT_FRAMES.blink : MASCOT_FRAMES[mood];
+    const frameMood = mood === "idle" && blinking ? "blink" : mood;
+    const frame = MASCOT_FRAMES[frameMood];
     ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
     frame.forEach((row, y) => {
       [...row].forEach((char, x) => {
-        const color = PALETTE[char];
-        if (!color || color === "transparent") return;
+        const color = colorFor(char, mood);
+        if (!color) return;
         ctx.fillStyle = color;
         ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
       });
     });
   }, [mood, blinking]);
 
-  function handleClick() {
-    if (message) return; // mood-driven speech takes priority
+  function triggerTrick() {
+    if (message) return;
 
-    // 8% chance of the "jump to center, say something" easter egg.
     if (Math.random() < 0.08) {
-      const line = MASCOT_TRIVIA[Math.floor(Math.random() * MASCOT_TRIVIA.length)];
       setBigCenter(true);
-      setSpeech(line);
+      setSpeech(randomTrivia());
       setTimeout(() => {
         setBigCenter(false);
         setSpeech(null);
-      }, 2600);
+      }, 3200);
       return;
     }
 
-    if (Math.random() < 0.5) {
-      const tricks: Trick[] = ["dash-left", "dash-up", "spin", "dance"];
-      const chosen = tricks[Math.floor(Math.random() * tricks.length)];
-      setTrick(chosen);
-      setTimeout(() => setTrick(null), 600);
-    } else {
-      const line = MASCOT_TRIVIA[Math.floor(Math.random() * MASCOT_TRIVIA.length)];
-      setSpeech(line);
-      setTimeout(() => setSpeech(null), 2600);
+    const tricks: Exclude<Trick, null>[] = ["dash-left", "dash-up", "spin", "dance"];
+    const roll = Math.floor(Math.random() * 5);
+    if (roll === 4) {
+      setSpeech(randomTrivia());
+      setTimeout(() => setSpeech(null), 3000);
+      return;
     }
+    const chosen = tricks[roll];
+    setTrick(chosen);
+    const duration = chosen === "spin" ? 1200 : chosen === "dash-up" ? 1000 : chosen === "dash-left" ? 1100 : 900;
+    setTimeout(() => setTrick(null), duration);
   }
 
   const displayedMessage = message ?? speech;
@@ -81,7 +92,7 @@ export function Mascot() {
         ref={canvasRef}
         width={CANVAS_SIZE}
         height={CANVAS_SIZE}
-        onClick={handleClick}
+        onClick={triggerTrick}
         className="mascot-canvas"
       />
     </div>

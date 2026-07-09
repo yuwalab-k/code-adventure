@@ -1,65 +1,71 @@
-// 10x10 pixel-grid robot, drawn procedurally (no image assets) — same approach
-// as the original code-sensei mascot. Each row is 10 characters; each
-// character indexes into PALETTE, '.' is transparent.
+// Ported directly from the original code-sensei mascot
+// (docs/problems/typical90_a.html) — same 10x10 grid data, same colors.
+// '0' = transparent, '1' = body, '2' = eye, '3' = mood accent (mouth).
 
-export const PALETTE: Record<string, string> = {
-  ".": "transparent",
-  "#": "#333333",
-  "b": "#1565c0",
-  "w": "#ffffff",
-  "g": "#2e7d32",
-  "r": "#c62828",
-};
+export const MASCOT_BODY = "#37474f";
+export const MASCOT_EYE = "#fff";
+export const MASCOT_HAPPY = "#2e7d32";
+export const MASCOT_SAD = "#c62828";
 
 export type MascotMood = "idle" | "blink" | "happy" | "sad";
 
 export const MASCOT_FRAMES: Record<MascotMood, string[]> = {
   idle: [
-    "..######..",
-    ".#bbbbbb#.",
-    "#b.wb.wb.b",
-    "#b.wb.wb.b",
-    "#bbbbbbbb#",
-    "#b.####.b#",
-    ".#bbbbbb#.",
-    "..#.##.#..",
-    "..#.##.#..",
-    ".##.##.##.",
+    "0000100000",
+    "0000100000",
+    "0011111100",
+    "0012002100",
+    "0011111100",
+    "0111111110",
+    "1011111101",
+    "0111111110",
+    "0011001100",
+    "0011001100",
   ],
   blink: [
-    "..######..",
-    ".#bbbbbb#.",
-    "#b......b#",
-    "#b......b#",
-    "#bbbbbbbb#",
-    "#b.####.b#",
-    ".#bbbbbb#.",
-    "..#.##.#..",
-    "..#.##.#..",
-    ".##.##.##.",
+    "0000100000",
+    "0000100000",
+    "0011111100",
+    "0011001100",
+    "0011111100",
+    "0111111110",
+    "1011111101",
+    "0111111110",
+    "0011001100",
+    "0011001100",
   ],
   happy: [
-    "..######..",
-    ".#bbbbbb#.",
-    "#b.wg.wg.b",
-    "#b.wb.wb.b",
-    "#bb####bb#",
-    "#b.gggg.b#",
-    ".#bbbbbb#.",
-    "..#.##.#..",
-    "..#.##.#..",
-    ".##.##.##.",
+    "0000100000",
+    "0000100000",
+    "0011111100",
+    "0012002100",
+    "0013333100",
+    "0111111110",
+    "1011111101",
+    "0111111110",
+    "0011001100",
+    "0011001100",
   ],
   sad: [
-    "..######..",
-    ".#bbbbbb#.",
-    "#b.wr.wr.b",
-    "#b.wb.wb.b",
-    "#bbbbbbbb#",
-    "#b.rrrr.b#",
-    ".#bbbbbb#.",
-    "..#.##.#..",
-    "..#.##.#..",
-    ".##.##.##.",
+    "0000100000",
+    "0000100000",
+    "0011111100",
+    "0012002100",
+    "0013003100",
+    "0111111110",
+    "1011111101",
+    "0111111110",
+    "0011001100",
+    "0011001100",
   ],
 };
+
+export function colorFor(char: string, mood: MascotMood): string | null {
+  if (char === "0") return null;
+  if (char === "1") return MASCOT_BODY;
+  if (char === "2") return MASCOT_EYE;
+  // '3': mood accent (mouth) — green when happy, red when sad, body color otherwise.
+  if (mood === "sad") return MASCOT_SAD;
+  if (mood === "happy") return MASCOT_HAPPY;
+  return MASCOT_BODY;
+}
