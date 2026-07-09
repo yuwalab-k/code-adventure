@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { CheckpointQuiz, type CheckpointQuestion } from "./CheckpointQuiz";
 
 // Groups the checkpoint questions for one screen (S2/S4/S6) into a single
 // "monster" fight: each correct answer is one hit, all correct = defeated.
-// The fight itself renders as a centered overlay (Undertale-style encounter
-// box) so it takes over the screen instead of sitting inline in the page.
+// Renders only the fight content (sprite/HP/dialogue) — the caller is
+// responsible for the surrounding centered battle-box/overlay.
 export function SmallBossBattle({
   problemId,
   questions,
@@ -65,27 +65,25 @@ export function SmallBossBattle({
   const hpPercent = Math.round((remaining.length / questions.length) * 100);
 
   return (
-    <div className="battle-overlay">
-      <div className={`battle-box ${shake ? "boss-shake" : ""}`}>
-        <div className="battle-monster-row">
-          <div className={`boss-sprite m${((monsterIndex - 1) % 3) + 1}`} />
-          <div className="battle-monster-info">
-            <p className="battle-monster-name">{monsterLabel}</p>
-            <div className="boss-hp-bar">
-              <div className="boss-hp-fill" style={{ width: `${hpPercent}%` }} />
-            </div>
-            <p className="boss-hp-label">
-              のこりHP {remaining.length} / {questions.length}
-            </p>
+    <Fragment>
+      <div className={`battle-monster-row ${shake ? "boss-shake" : ""}`}>
+        <div className={`boss-sprite m${((monsterIndex - 1) % 3) + 1}`} />
+        <div className="battle-monster-info">
+          <p className="battle-monster-name">{monsterLabel}</p>
+          <div className="boss-hp-bar">
+            <div className="boss-hp-fill" style={{ width: `${hpPercent}%` }} />
           </div>
+          <p className="boss-hp-label">
+            のこりHP {remaining.length} / {questions.length}
+          </p>
         </div>
-        <CheckpointQuiz
-          key={remaining[0].id}
-          question={remaining[0]}
-          problemId={problemId}
-          onDefeated={() => setDefeatedIds((prev) => new Set(prev).add(remaining[0].id))}
-        />
       </div>
-    </div>
+      <CheckpointQuiz
+        key={remaining[0].id}
+        question={remaining[0]}
+        problemId={problemId}
+        onDefeated={() => setDefeatedIds((prev) => new Set(prev).add(remaining[0].id))}
+      />
+    </Fragment>
   );
 }

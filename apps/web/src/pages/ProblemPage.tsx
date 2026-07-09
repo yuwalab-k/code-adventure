@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { useMascot } from "../mascot/MascotContext";
 import { useAuth } from "../auth/AuthContext";
@@ -9,19 +9,11 @@ import { xpBarPercent } from "../lib/levels";
 import { ExplanationCarousel, type ExplanationCard } from "../problems/ExplanationCarousel";
 import { SmallBossBattle } from "../problems/SmallBossBattle";
 import type { CheckpointQuestion } from "../problems/CheckpointQuiz";
+import { RoomCanvas } from "../room/RoomCanvas";
+import type { RoomSpot } from "../room/RoomScene";
 
 const SCREENS = ["s1", "s2", "s3", "s4", "s5", "s6", "s7"] as const;
 type Screen = (typeof SCREENS)[number];
-
-const SCREEN_LABELS: Record<Screen, string> = {
-  s1: "問題",
-  s2: "解説",
-  s3: "確認",
-  s4: "間違い",
-  s5: "速度比較",
-  s6: "正解",
-  s7: "体験",
-};
 
 interface Problem {
   id: string;
@@ -99,13 +91,23 @@ interface ClearBigBossResponse {
 const BOSS_SCREENS: Screen[] = ["s2", "s4", "s6", "s7"];
 const MONSTER_INDEX: Record<string, number> = { s2: 1, s4: 2, s6: 3, s7: 4 };
 const MONSTER_LABEL: Record<string, string> = { s2: "モンスター1", s4: "モンスター2", s6: "モンスター3", s7: "ラスボス" };
+const SPOT_LABEL: Record<Screen, string> = {
+  s1: "問題",
+  s2: MONSTER_LABEL.s2,
+  s3: "たしかめ",
+  s4: MONSTER_LABEL.s4,
+  s5: "速度比較",
+  s6: MONSTER_LABEL.s6,
+  s7: MONSTER_LABEL.s7,
+};
 
 export function ProblemPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { say } = useMascot();
   const { user, refreshUser } = useAuth();
-  const [screen, setScreen] = useState<Screen>("s1");
+  const [openSpot, setOpenSpot] = useState<Screen | null>(null);
   const [levelUpFlash, setLevelUpFlash] = useState(false);
   const [clearReward, setClearReward] = useState<ClearReward | null>(null);
 
@@ -136,17 +138,10 @@ export function ProblemPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["progress", id] }),
   });
 
-  useEffect(() => {
-    if (!id) return;
-    say(PROBLEM_SCREEN_TIPS[screen]);
-    markProgress.mutate({ screen, status: "in_progress" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screen, id]);
-
   const visited = new Set((progressData?.progress ?? []).map((p) => p.screen));
 
-  // 小ボス3体+大ボスは、倒すまでは次の画面に進めない。
-  // それ以外の画面(問題文・可視化・速度比較)には勝敗がないので通過するだけでよい。
+  // 小ボス3体+大ボスは、倒すまでは先の部屋のモンスターに近づけない。
+  // それ以外(問題文・可視化・速度比較)には勝敗がないので通過するだけでよい。
   function isBossDefeated(s: Screen): boolean {
     if (s === "s2" || s === "s4" || s === "s6") return bossStatus?.smallBosses[s].defeated ?? false;
     return bossStatus?.bigBoss.defeated ?? false;
@@ -161,10 +156,17 @@ export function ProblemPage() {
     return false;
   }
 
-  function goTo(next: Screen) {
-    if (isLocked(next)) return;
-    markProgress.mutate({ screen, status: "completed" });
-    setScreen(next);
+  function openSpotHandler(rawScreen: string) {
+    const screen = rawScreen as Screen;
+    if (isLocked(screen)) return;
+    setOpenSpot(screen);
+    say(PROBLEM_SCREEN_TIPS[screen]);
+    markProgress.mutate({ screen, status: "in_progress" });
+  }
+
+  function closeSpot() {
+    if (openSpot) markProgress.mutate({ screen: openSpot, status: "completed" });
+    setOpenSpot(null);
   }
 
   async function markBigBossDefeated() {
@@ -189,17 +191,18 @@ export function ProblemPage() {
   const questionsFor = (s: string) => checkpointQuestions.filter((q) => q.screen === s);
   const s7Unlocked = bossStatus?.bigBoss.unlocked ?? false;
 
-  const currentIndex = SCREENS.indexOf(screen);
-  const nextScreen = SCREENS[currentIndex + 1];
-  const canAdvance = !!nextScreen && !isLocked(nextScreen);
-
-  const isBossScreen = BOSS_SCREENS.includes(screen);
+  const spots: RoomSpot[] = SCREENS.map((s) => ({
+    screen: s,
+    kind: s === "s1" ? "plaque" : BOSS_SCREENS.includes(s) ? "monster" : "training",
+    label: SPOT_LABEL[s],
+    locked: isLocked(s),
+    defeated: BOSS_SCREENS.includes(s) ? isBossDefeated(s) : visited.has(s),
+  }));
 
   return (
-    <main className="problem-page">
-      <Link to="/map" className="exit-door">
-        <span className="exit-door-icon" />
-        出口
+    <main className="problem-page room-page">
+      <Link to="/map" className="fallback-map-link">
+        地図へ戻る
       </Link>
 
       {user && (
@@ -216,6 +219,7 @@ export function ProblemPage() {
       <p>
         ★{problem.difficulty} {tags.map((t) => t.name).join(" / ")}
       </p>
+      <p className="room-intro">矢印キーで歩いて、モンスターや看板に近づこう。出口から歩いて出るとマップへ戻れるよ。</p>
 
       {levelUpFlash && <div className="level-up-banner">LEVEL UP! Lv.{user?.level}</div>}
 
@@ -226,170 +230,208 @@ export function ProblemPage() {
             +{clearReward.xpGained} XP / +{clearReward.coinsGained} コイン
             {clearReward.itemGranted && " / アイテム獲得!"}
           </p>
-          <button onClick={() => setClearReward(null)}>とじる</button>
+          <button
+            onClick={() => {
+              setClearReward(null);
+              closeSpot();
+            }}
+          >
+            とじる
+          </button>
         </div>
       )}
 
-      <nav className="stage-path">
-        {SCREENS.map((s, i) => {
-          const locked = isLocked(s);
-          const isBoss = BOSS_SCREENS.includes(s);
-          const cleared = isBoss ? isBossDefeated(s) : visited.has(s) && s !== screen;
-          const status = locked ? "locked" : s === screen ? "current" : cleared ? "cleared" : "open";
-          return (
-            <div className="stage-node-wrap" key={s}>
-              {i > 0 && <div className={`stage-link ${locked ? "locked" : ""}`} />}
-              <button
-                className={`stage-node ${status} ${isBoss ? "boss" : ""}`}
-                disabled={locked}
-                onClick={() => goTo(s)}
-                title={SCREEN_LABELS[s]}
-              >
-                {i + 1}
+      <RoomCanvas spots={spots} onEnterSpot={openSpotHandler} onExit={() => navigate("/map")} />
+
+      {openSpot === "s1" && (
+        <div className="battle-overlay">
+          <div className="battle-box">
+            <div className="panel-header">
+              <p className="battle-monster-name">問題</p>
+              <button className="panel-close" onClick={closeSpot}>
+                部屋にもどる
               </button>
-              <span className="stage-node-label">
-                {SCREEN_LABELS[s]}
-                {isBoss && <em className="boss-tag">{MONSTER_LABEL[s]}</em>}
-              </span>
             </div>
-          );
-        })}
-      </nav>
-
-      <div key={screen} className={`screen-panel ${isBossScreen ? "boss-panel" : ""}`}>
-      {screen === "s1" && (
-        <section>
-          <p className="room-intro">
-            この部屋には4体のモンスターがいる。ひとつずつたおして、さいごの部屋を目指そう。
-          </p>
-          <p style={{ whiteSpace: "pre-wrap" }}>{problem.statementMd}</p>
-          <h3>制約</h3>
-          <p style={{ whiteSpace: "pre-wrap" }}>{problem.constraintsMd}</p>
-          {problem.statementNoteMd && (
-            <>
-              <h3>かんたん解説</h3>
-              <p style={{ whiteSpace: "pre-wrap" }}>{problem.statementNoteMd}</p>
-            </>
-          )}
-          <h3>サンプル</h3>
-          {samples.map((sample) => (
-            <div className="sample-box" key={sample.id}>
-              <pre>入力: {sample.input}</pre>
-              <pre>出力: {sample.output}</pre>
-              {sample.explanationMd && <p>{sample.explanationMd}</p>}
-            </div>
-          ))}
-          <a href={problem.atcoderUrl} target="_blank" rel="noreferrer">
-            AtCoderで見る
-          </a>
-        </section>
-      )}
-
-      {screen === "s2" && (
-        <section>
-          <ExplanationCarousel cards={cardsFor("s2")} />
-          <SmallBossBattle
-            problemId={id!}
-            questions={questionsFor("s2")}
-            alreadyDefeated={bossStatus?.smallBosses.s2.defeated ?? false}
-            monsterIndex={MONSTER_INDEX.s2}
-            monsterLabel={MONSTER_LABEL.s2}
-            onAllDefeated={() => goTo("s3")}
-          />
-        </section>
-      )}
-
-      {screen === "s3" && (
-        <section>
-          <p>この問題専用のステップ可視化は準備中です。</p>
-        </section>
-      )}
-
-      {screen === "s4" && (
-        <section>
-          <ExplanationCarousel cards={cardsFor("s4")} />
-          {badSolutions.map((bad) => (
-            <div key={bad.id}>
-              <p>{bad.label}</p>
-              <pre className="code-box">{bad.code}</pre>
-            </div>
-          ))}
-          <SmallBossBattle
-            problemId={id!}
-            questions={questionsFor("s4")}
-            alreadyDefeated={bossStatus?.smallBosses.s4.defeated ?? false}
-            monsterIndex={MONSTER_INDEX.s4}
-            monsterLabel={MONSTER_LABEL.s4}
-            onAllDefeated={() => goTo("s5")}
-          />
-        </section>
-      )}
-
-      {screen === "s5" && (
-        <section>
-          <p>速度比較は準備中です。</p>
-        </section>
-      )}
-
-      {screen === "s6" && (
-        <section>
-          <ExplanationCarousel cards={cardsFor("s6")} />
-          {solutions.map((sol) => (
-            <div key={sol.id}>
-              <p>{sol.language}</p>
-              <pre className="code-box">{sol.code}</pre>
-            </div>
-          ))}
-          <SmallBossBattle
-            problemId={id!}
-            questions={questionsFor("s6")}
-            alreadyDefeated={bossStatus?.smallBosses.s6.defeated ?? false}
-            monsterIndex={MONSTER_INDEX.s6}
-            monsterLabel={MONSTER_LABEL.s6}
-            onAllDefeated={() => goTo("s7")}
-          />
-        </section>
-      )}
-
-      {screen === "s7" && (
-        <section>
-          {!s7Unlocked && <p>モンスター1〜3をたおすと、{MONSTER_LABEL.s7}があらわれるよ。</p>}
-          {s7Unlocked && !bossStatus?.bigBoss.defeated && (
-            <div className="battle-overlay">
-              <div className="battle-box">
-                <div className="battle-monster-row">
-                  <div className="boss-sprite final" />
-                  <div className="battle-monster-info">
-                    <p className="battle-monster-name">{MONSTER_LABEL.s7}</p>
-                  </div>
-                </div>
-                <div className="monster-dialogue">
-                  <p>この問題専用の体験演習は準備中です。</p>
-                </div>
-                <div className="checkpoint-choices">
-                  <button onClick={markBigBossDefeated}>
-                    <span className="choice-cursor">▶</span> たたかう(仮)
-                  </button>
-                </div>
+            <p style={{ whiteSpace: "pre-wrap" }}>{problem.statementMd}</p>
+            <h3>制約</h3>
+            <p style={{ whiteSpace: "pre-wrap" }}>{problem.constraintsMd}</p>
+            {problem.statementNoteMd && (
+              <>
+                <h3>かんたん解説</h3>
+                <p style={{ whiteSpace: "pre-wrap" }}>{problem.statementNoteMd}</p>
+              </>
+            )}
+            <h3>サンプル</h3>
+            {samples.map((sample) => (
+              <div className="sample-box" key={sample.id}>
+                <pre>入力: {sample.input}</pre>
+                <pre>出力: {sample.output}</pre>
+                {sample.explanationMd && <p>{sample.explanationMd}</p>}
               </div>
+            ))}
+            <a href={problem.atcoderUrl} target="_blank" rel="noreferrer">
+              AtCoderで見る
+            </a>
+          </div>
+        </div>
+      )}
+
+      {openSpot === "s2" && (
+        <div className="battle-overlay">
+          <div className="battle-box">
+            <div className="panel-header">
+              <p className="battle-monster-name">かいせつ</p>
+              <button className="panel-close" onClick={closeSpot}>
+                部屋にもどる
+              </button>
             </div>
-          )}
-          {bossStatus?.bigBoss.defeated && (
+            <ExplanationCarousel cards={cardsFor("s2")} />
+            <SmallBossBattle
+              problemId={id!}
+              questions={questionsFor("s2")}
+              alreadyDefeated={bossStatus?.smallBosses.s2.defeated ?? false}
+              monsterIndex={MONSTER_INDEX.s2}
+              monsterLabel={MONSTER_LABEL.s2}
+              onAllDefeated={closeSpot}
+            />
+          </div>
+        </div>
+      )}
+
+      {openSpot === "s3" && (
+        <div className="battle-overlay">
+          <div className="battle-box">
+            <div className="panel-header">
+              <p className="battle-monster-name">たしかめ</p>
+              <button className="panel-close" onClick={closeSpot}>
+                部屋にもどる
+              </button>
+            </div>
+            <p>この問題専用のステップ可視化は準備中です。</p>
+          </div>
+        </div>
+      )}
+
+      {openSpot === "s4" && (
+        <div className="battle-overlay">
+          <div className="battle-box">
+            <div className="panel-header">
+              <p className="battle-monster-name">まちがいさがし</p>
+              <button className="panel-close" onClick={closeSpot}>
+                部屋にもどる
+              </button>
+            </div>
+            <ExplanationCarousel cards={cardsFor("s4")} />
+            {badSolutions.map((bad) => (
+              <div key={bad.id}>
+                <p>{bad.label}</p>
+                <pre className="code-box">{bad.code}</pre>
+              </div>
+            ))}
+            <SmallBossBattle
+              problemId={id!}
+              questions={questionsFor("s4")}
+              alreadyDefeated={bossStatus?.smallBosses.s4.defeated ?? false}
+              monsterIndex={MONSTER_INDEX.s4}
+              monsterLabel={MONSTER_LABEL.s4}
+              onAllDefeated={closeSpot}
+            />
+          </div>
+        </div>
+      )}
+
+      {openSpot === "s5" && (
+        <div className="battle-overlay">
+          <div className="battle-box">
+            <div className="panel-header">
+              <p className="battle-monster-name">速度比較</p>
+              <button className="panel-close" onClick={closeSpot}>
+                部屋にもどる
+              </button>
+            </div>
+            <p>速度比較は準備中です。</p>
+          </div>
+        </div>
+      )}
+
+      {openSpot === "s6" && (
+        <div className="battle-overlay">
+          <div className="battle-box">
+            <div className="panel-header">
+              <p className="battle-monster-name">せいかい</p>
+              <button className="panel-close" onClick={closeSpot}>
+                部屋にもどる
+              </button>
+            </div>
+            <ExplanationCarousel cards={cardsFor("s6")} />
+            {solutions.map((sol) => (
+              <div key={sol.id}>
+                <p>{sol.language}</p>
+                <pre className="code-box">{sol.code}</pre>
+              </div>
+            ))}
+            <SmallBossBattle
+              problemId={id!}
+              questions={questionsFor("s6")}
+              alreadyDefeated={bossStatus?.smallBosses.s6.defeated ?? false}
+              monsterIndex={MONSTER_INDEX.s6}
+              monsterLabel={MONSTER_LABEL.s6}
+              onAllDefeated={closeSpot}
+            />
+          </div>
+        </div>
+      )}
+
+      {openSpot === "s7" && !s7Unlocked && (
+        <div className="battle-overlay">
+          <div className="battle-box">
+            <div className="panel-header">
+              <p className="battle-monster-name">{MONSTER_LABEL.s7}のとびら</p>
+              <button className="panel-close" onClick={closeSpot}>
+                部屋にもどる
+              </button>
+            </div>
+            <p>モンスター1〜3をたおすと、{MONSTER_LABEL.s7}があらわれるよ。</p>
+          </div>
+        </div>
+      )}
+      {openSpot === "s7" && s7Unlocked && !bossStatus?.bigBoss.defeated && (
+        <div className="battle-overlay">
+          <div className="battle-box">
+            <div className="panel-header">
+              <p className="battle-monster-name">{MONSTER_LABEL.s7}</p>
+              <button className="panel-close" onClick={closeSpot}>
+                にげる
+              </button>
+            </div>
+            <div className="battle-monster-row">
+              <div className="boss-sprite final" />
+            </div>
+            <div className="monster-dialogue">
+              <p>この問題専用の体験演習は準備中です。</p>
+            </div>
+            <div className="checkpoint-choices">
+              <button onClick={markBigBossDefeated}>
+                <span className="choice-cursor">▶</span> たたかう(仮)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {openSpot === "s7" && bossStatus?.bigBoss.defeated && (
+        <div className="battle-overlay">
+          <div className="battle-box">
+            <div className="panel-header">
+              <p className="battle-monster-name">{MONSTER_LABEL.s7}</p>
+              <button className="panel-close" onClick={closeSpot}>
+                部屋にもどる
+              </button>
+            </div>
             <div className="monster-cleared">
               <div className="boss-sprite defeated final" />
               <p>{MONSTER_LABEL.s7}をたおした！この部屋はクリア済みです。</p>
             </div>
-          )}
-        </section>
-      )}
-      </div>
-
-      {nextScreen && (
-        <div className="stage-advance">
-          <button className="next-button" disabled={!canAdvance} onClick={() => goTo(nextScreen)}>
-            つぎへ({SCREEN_LABELS[nextScreen]})
-          </button>
-          {!canAdvance && <p className="stage-advance-hint">小ボスをたおすと次に進めるよ。</p>}
+          </div>
         </div>
       )}
     </main>
