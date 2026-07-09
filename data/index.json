@@ -1,0 +1,67 @@
+[
+  {
+    "id": "typical90_a",
+    "contest": "典型90問",
+    "problem": "001",
+    "title": "Yokan Party",
+    "difficulty": 4,
+    "tags": [
+      "二分探索",
+      "貪欲"
+    ],
+    "file": "typical90_a"
+  },
+  {
+    "id": "typical90_b",
+    "contest": "典型90問",
+    "problem": "002",
+    "title": "Encyclopedia of Parentheses",
+    "difficulty": 3,
+    "tags": [
+      "再帰",
+      "バックトラッキング",
+      "全探索",
+      "括弧列"
+    ],
+    "file": "typical90_b"
+  },
+  {
+    "id": "typical90_c",
+    "contest": "典型90問",
+    "problem": "003",
+    "title": "Longest Circular Road",
+    "difficulty": 4,
+    "tags": [
+      "木",
+      "木の直径",
+      "BFS",
+      "グラフ"
+    ],
+    "file": "typical90_c"
+  },
+  {
+    "id": "typical90_d",
+    "contest": "典型90問",
+    "problem": "004",
+    "title": "Cross Sum",
+    "difficulty": 2,
+    "tags": [
+      "累積和",
+      "配列"
+    ],
+    "file": "typical90_d"
+  },
+  {
+    "id": "typical90_e",
+    "contest": "典型90問",
+    "problem": "005",
+    "title": "Restricted Digits",
+    "difficulty": 7,
+    "tags": [
+      "DP",
+      "行列累乗",
+      "余り"
+    ],
+    "file": "typical90_e"
+  }
+]

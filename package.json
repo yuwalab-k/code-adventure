@@ -1,0 +1,12 @@
+{
+  "name": "code-adventure",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @code-adventure/web dev",
+    "dev:api": "pnpm --filter @code-adventure/api dev",
+    "seed:local": "pnpm --filter @code-adventure/seed run seed:local"
+  }
+}
