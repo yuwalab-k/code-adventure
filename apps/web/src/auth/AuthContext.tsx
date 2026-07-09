@@ -17,6 +17,7 @@ interface AuthState {
   status: "loading" | "signed-in" | "signed-out";
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -49,7 +50,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus("signed-out");
   }
 
-  return <AuthContext.Provider value={{ user, status, login, logout }}>{children}</AuthContext.Provider>;
+  // Re-fetches the current user (xp/level/coins) after a reward-granting
+  // action, so the HUD reflects the new totals without a full page reload.
+  async function refreshUser() {
+    const res = await apiFetch<{ user: User }>("/auth/me");
+    setUser(res.user);
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, status, login, logout, refreshUser }}>{children}</AuthContext.Provider>
+  );
 }
 
 export function useAuth(): AuthState {

@@ -3,7 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { useMascot } from "../mascot/MascotContext";
+import { useAuth } from "../auth/AuthContext";
 import { PROBLEM_SCREEN_TIPS } from "../mascot/sceneTips";
+import { xpBarPercent } from "../lib/levels";
 import { ExplanationCarousel, type ExplanationCard } from "../problems/ExplanationCarousel";
 import { SmallBossBattle } from "../problems/SmallBossBattle";
 import type { CheckpointQuestion } from "../problems/CheckpointQuiz";
@@ -78,13 +80,32 @@ interface ProgressRow {
   status: "not_started" | "in_progress" | "completed";
 }
 
+interface ClearReward {
+  xpGained: number;
+  coinsGained: number;
+  itemGranted: boolean;
+}
+
+interface ClearBigBossResponse {
+  cleared: boolean;
+  alreadyCleared: boolean;
+  xpGained: number;
+  coinsGained: number;
+  level: number;
+  leveledUp: boolean;
+  itemGranted: boolean;
+}
+
 const BOSS_SCREENS: Screen[] = ["s2", "s4", "s6", "s7"];
 
 export function ProblemPage() {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const { say } = useMascot();
+  const { user, refreshUser } = useAuth();
   const [screen, setScreen] = useState<Screen>("s1");
+  const [levelUpFlash, setLevelUpFlash] = useState(false);
+  const [clearReward, setClearReward] = useState<ClearReward | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["problem", id],
@@ -145,9 +166,17 @@ export function ProblemPage() {
   }
 
   async function markBigBossDefeated() {
-    await apiFetch(`/progress/${id}/s7`, { method: "PUT", body: JSON.stringify({ status: "completed" }) });
+    const res = await apiFetch<ClearBigBossResponse>(`/problems/${id}/clear-big-boss`, { method: "POST" });
     queryClient.invalidateQueries({ queryKey: ["boss-status", id] });
     queryClient.invalidateQueries({ queryKey: ["map"] });
+    await refreshUser();
+    if (!res.alreadyCleared) {
+      setClearReward({ xpGained: res.xpGained, coinsGained: res.coinsGained, itemGranted: res.itemGranted });
+      if (res.leveledUp) {
+        setLevelUpFlash(true);
+        setTimeout(() => setLevelUpFlash(false), 2600);
+      }
+    }
   }
 
   if (isLoading) return <main>よみこみちゅう...</main>;
@@ -162,13 +191,39 @@ export function ProblemPage() {
   const nextScreen = SCREENS[currentIndex + 1];
   const canAdvance = !!nextScreen && !isLocked(nextScreen);
 
+  const isBossScreen = BOSS_SCREENS.includes(screen);
+
   return (
     <main className="problem-page">
       <Link to="/map">← マップへ戻る</Link>
+
+      {user && (
+        <div className="hud-bar">
+          <span className="hud-level">Lv.{user.level}</span>
+          <div className="hud-xp-bar">
+            <div className="hud-xp-fill" style={{ width: `${xpBarPercent(user.xp)}%` }} />
+          </div>
+          <span className="hud-coins">{user.coins} コイン</span>
+        </div>
+      )}
+
       <h1>{problem.title}</h1>
       <p>
         ★{problem.difficulty} {tags.map((t) => t.name).join(" / ")}
       </p>
+
+      {levelUpFlash && <div className="level-up-banner">LEVEL UP! Lv.{user?.level}</div>}
+
+      {clearReward && (
+        <div className="clear-reward-toast">
+          <p>この問題をクリアした!</p>
+          <p>
+            +{clearReward.xpGained} XP / +{clearReward.coinsGained} コイン
+            {clearReward.itemGranted && " / アイテム獲得!"}
+          </p>
+          <button onClick={() => setClearReward(null)}>とじる</button>
+        </div>
+      )}
 
       <nav className="stage-path">
         {SCREENS.map((s, i) => {
@@ -196,6 +251,7 @@ export function ProblemPage() {
         })}
       </nav>
 
+      <div key={screen} className={`screen-panel ${isBossScreen ? "boss-panel" : ""}`}>
       {screen === "s1" && (
         <section>
           <p style={{ whiteSpace: "pre-wrap" }}>{problem.statementMd}</p>
@@ -290,6 +346,7 @@ export function ProblemPage() {
           {bossStatus?.bigBoss.defeated && <p>大ボスをたおした！この問題はクリア済みです。</p>}
         </section>
       )}
+      </div>
 
       {nextScreen && (
         <div className="stage-advance">

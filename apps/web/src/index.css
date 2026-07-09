@@ -438,3 +438,237 @@ button {
   color: var(--color-emphasis);
   margin: 0;
 }
+
+/* --- problem page HUD --- */
+
+.hud-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--color-console-bg);
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 12px 0;
+  font-size: 13px;
+}
+
+.hud-level {
+  font-weight: bold;
+  color: var(--color-emphasis);
+  flex: 0 0 auto;
+}
+
+.hud-xp-bar {
+  flex: 1 1 auto;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.hud-xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-correct));
+  transition: width 0.4s ease;
+}
+
+.hud-coins {
+  flex: 0 0 auto;
+  color: var(--color-emphasis);
+}
+
+/* --- reward / level-up feedback --- */
+
+.level-up-banner {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-emphasis);
+  color: #201c33;
+  font-size: 24px;
+  font-weight: bold;
+  padding: 16px 32px;
+  border-radius: 12px;
+  border: 3px solid #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  z-index: 900;
+  animation: level-up-pop 2.6s ease forwards;
+}
+
+@keyframes level-up-pop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 0;
+  }
+  15% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+  }
+  25% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.clear-reward-toast {
+  background: var(--color-console-bg);
+  color: #fff;
+  border: 2px solid var(--color-emphasis);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin: 16px 0;
+  text-align: center;
+}
+
+.clear-reward-toast p {
+  margin: 4px 0;
+}
+
+.clear-reward-toast button {
+  margin-top: 8px;
+  background: var(--color-emphasis);
+  color: #201c33;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-family: var(--font-body);
+}
+
+/* --- screen panel (問題ページ本文の見た目/遷移) --- */
+
+.screen-panel {
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  padding: 16px;
+  margin: 8px 0;
+  animation: screen-enter 0.35s ease;
+}
+
+.screen-panel.boss-panel {
+  background: var(--color-console-bg);
+  color: #eee;
+  border-color: var(--color-emphasis);
+}
+
+.screen-panel.boss-panel h3 {
+  color: var(--color-emphasis);
+}
+
+.screen-panel.boss-panel a {
+  color: #b9a3ff;
+}
+
+@keyframes screen-enter {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* --- boss battle visuals --- */
+
+.small-boss {
+  position: relative;
+}
+
+.boss-sprite {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 10px;
+  background: var(--color-incorrect);
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+}
+
+.boss-sprite.defeated {
+  background: var(--color-correct);
+  opacity: 0.6;
+}
+
+.boss-hp-label {
+  font-size: 12px;
+  text-align: center;
+  margin: 0 0 8px;
+}
+
+.boss-shake {
+  animation: boss-shake 0.35s ease;
+}
+
+@keyframes boss-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.boss-hit-flash {
+  animation: boss-hit-flash 0.4s ease;
+}
+
+@keyframes boss-hit-flash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(22, 163, 74, 0);
+  }
+}
+
+.boss-miss-flash {
+  animation: boss-miss-flash 0.4s ease;
+}
+
+@keyframes boss-miss-flash {
+  0%,
+  100% {
+    background: transparent;
+  }
+  30% {
+    background: rgba(225, 29, 72, 0.15);
+  }
+}
+
+.xp-popup {
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--color-emphasis);
+  font-weight: bold;
+  animation: xp-popup-float 1.2s ease forwards;
+}
+
+@keyframes xp-popup-float {
+  0% {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-14px);
+    opacity: 0;
+  }
+}
