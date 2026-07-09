@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './auth/AuthContext.tsx'
+import { MascotProvider } from './mascot/MascotContext.tsx'
+import { Mascot } from './mascot/Mascot.tsx'
 
 const queryClient = new QueryClient()
 
@@ -13,7 +15,10 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <App />
+          <MascotProvider>
+            <App />
+            <Mascot />
+          </MascotProvider>
         </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>

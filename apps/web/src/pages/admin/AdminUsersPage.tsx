@@ -10,6 +10,69 @@ interface AdminUser {
   role: "student" | "admin";
 }
 
+function EditUserRow({ user }: { user: AdminUser }) {
+  const queryClient = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [displayName, setDisplayName] = useState(user.displayName);
+  const [role, setRole] = useState<"student" | "admin">(user.role);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  if (!editing) {
+    return (
+      <li>
+        {user.displayName} (@{user.username}) — {user.role}{" "}
+        <button onClick={() => setEditing(true)}>編集</button>
+      </li>
+    );
+  }
+
+  async function handleSave(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSaving(true);
+    try {
+      const body: { displayName: string; role: string; password?: string } = { displayName, role };
+      if (password) body.password = password;
+      await apiFetch(`/admin/users/${user.id}`, { method: "PUT", body: JSON.stringify(body) });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      setEditing(false);
+      setPassword("");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "更新に失敗しました");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <li>
+      <form onSubmit={handleSave} style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+        <span>@{user.username}</span>
+        <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
+        <select value={role} onChange={(e) => setRole(e.target.value as "student" | "admin")}>
+          <option value="student">生徒</option>
+          <option value="admin">管理者</option>
+        </select>
+        <input
+          type="password"
+          placeholder="新しいパスワード(変更する場合のみ)"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit" disabled={saving}>
+          保存
+        </button>
+        <button type="button" onClick={() => setEditing(false)}>
+          キャンセル
+        </button>
+        {error && <span style={{ color: "#c62828" }}>{error}</span>}
+      </form>
+    </li>
+  );
+}
+
 // The one and only account-provisioning surface: there is no public
 // self-registration endpoint anywhere in this API (see SPEC.md 4.1).
 export function AdminUsersPage() {
@@ -76,9 +139,7 @@ export function AdminUsersPage() {
       <h2>アカウント一覧</h2>
       <ul>
         {data?.users.map((u) => (
-          <li key={u.id}>
-            {u.displayName} (@{u.username}) — {u.role}
-          </li>
+          <EditUserRow key={u.id} user={u} />
         ))}
       </ul>
     </main>

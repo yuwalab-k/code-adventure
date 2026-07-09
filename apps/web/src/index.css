@@ -1,6 +1,20 @@
-/* Functional placeholder styling — the real design system (DotGothic16 font,
-   CRT scanline, color tokens from DB_DESIGN.md/SPEC.md 8) comes later. This
-   just keeps the auth-flow / API-wiring verification pass legible. */
+/* Design tokens per SPEC.md 8 — colors, fonts, and the CRT scanline effect
+   carried over from the original code-sensei site. */
+
+:root {
+  --color-bg: #fff;
+  --color-text: #111;
+  --color-header-bg: #f5f5f5;
+  --color-accent: #1565c0; /* links, headings, active tabs */
+  --color-correct: #2e7d32; /* correct answers, cleared state */
+  --color-incorrect: #c62828; /* wrong answers */
+  --color-emphasis: #e65100; /* emphasis, warnings */
+  --color-console-bg: #050505; /* code/execution panels only */
+  --color-border: #ddd;
+
+  --font-body: 'DotGothic16', monospace;
+  --font-code: 'Google Sans Code', ui-monospace, monospace;
+}
 
 * {
   box-sizing: border-box;
@@ -8,15 +22,46 @@
 
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #fff;
-  color: #111;
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-text);
+  position: relative;
+}
+
+/* Subtle CRT scanline overlay, carried over from the original site. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.035) 0px,
+    rgba(0, 0, 0, 0.035) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+a {
+  color: var(--color-accent);
+}
+
+pre,
+code {
+  font-family: var(--font-code);
 }
 
 main {
   max-width: 640px;
   margin: 0 auto;
   padding: 24px;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
 }
 
 .login-page {
@@ -43,10 +88,20 @@ main {
 .login-form input {
   padding: 8px;
   font-size: 16px;
+  font-family: var(--font-body);
+}
+
+.login-form button {
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 16px;
 }
 
 .login-error {
-  color: #c62828;
+  color: var(--color-incorrect);
   font-size: 14px;
 }
 
@@ -55,6 +110,9 @@ main {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  padding: 12px;
+  background: var(--color-header-bg);
+  border-radius: 8px;
 }
 
 .map-header nav {
@@ -72,7 +130,7 @@ main {
 
 .map-node-list li {
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
 }
 
@@ -81,5 +139,103 @@ main {
 }
 
 .map-node-list li.cleared {
-  border-color: #2e7d32;
+  border-color: var(--color-correct);
+}
+
+@media (max-width: 700px) {
+  main {
+    padding: 12px;
+  }
+  .map-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+.mascot-wrap {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 500;
+  transition: all 0.3s ease;
+}
+
+.mascot-wrap.center {
+  right: 50%;
+  bottom: 50%;
+  transform: translate(50%, 50%) scale(3);
+  z-index: 1000;
+}
+
+.mascot-canvas {
+  image-rendering: pixelated;
+  cursor: pointer;
+  width: 64px;
+  height: 64px;
+}
+
+.mascot-speech {
+  position: absolute;
+  bottom: 72px;
+  right: 0;
+  max-width: 180px;
+  background: #fff;
+  border: 2px solid var(--color-accent);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.mascot-wrap.trick-dash-left {
+  animation: mascot-dash-left 0.6s ease;
+}
+.mascot-wrap.trick-dash-up {
+  animation: mascot-dash-up 0.6s ease;
+}
+.mascot-wrap.trick-spin .mascot-canvas {
+  animation: mascot-spin 0.6s ease;
+}
+.mascot-wrap.trick-dance .mascot-canvas {
+  animation: mascot-dance 0.6s ease;
+}
+
+@keyframes mascot-dash-left {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-40px);
+  }
+}
+@keyframes mascot-dash-up {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-40px);
+  }
+}
+@keyframes mascot-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes mascot-dance {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-15deg);
+  }
+  75% {
+    transform: rotate(15deg);
+  }
 }
