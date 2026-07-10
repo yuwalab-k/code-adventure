@@ -9,25 +9,26 @@ export interface RoomSpot {
   defeated: boolean;
 }
 
-const ROOM_WIDTH = 300;
-const ROOM_HEIGHT = 680;
+const ROOM_WIDTH = 420;
+const ROOM_HEIGHT = 420;
 const TOUCH_RADIUS = 30;
-const MOVE_SPEED = 140;
+const MOVE_SPEED = 150;
 const ARRIVE_RADIUS = 6;
-const ZOOM = 1.6;
-const DOOR_X = 150;
-const DOOR_Y = 40;
+const ZOOM = 1.3;
+const DOOR_X = 210;
+const DOOR_Y = 380;
 
-// Fixed vertical order matching S1→S7: walking further into the room is
-// walking through the problem, same order as the old linear stage path.
-const SPOT_Y: Record<string, number> = {
-  s1: 110,
-  s2: 190,
-  s3: 270,
-  s4: 350,
-  s5: 430,
-  s6: 510,
-  s7: 610,
+// A proper room, not a single-file corridor: monsters guard the back
+// (top) of the room, training spots flank the middle, the problem plaque
+// sits near the entrance, and the door is at the front (bottom).
+const SPOT_POS: Record<string, { x: number; y: number }> = {
+  s1: { x: 210, y: 300 },
+  s3: { x: 90, y: 220 },
+  s5: { x: 330, y: 220 },
+  s2: { x: 110, y: 110 },
+  s4: { x: 210, y: 70 },
+  s6: { x: 310, y: 110 },
+  s7: { x: 210, y: 30 },
 };
 
 interface SpotPosition {
@@ -88,7 +89,7 @@ export class RoomScene extends Phaser.Scene {
       });
     });
 
-    this.player = this.physics.add.sprite(DOOR_X, DOOR_Y + 40, "player");
+    this.player = this.physics.add.sprite(DOOR_X, DOOR_Y - 40, "player");
     this.player.setCollideWorldBounds(true);
     this.physics.world.setBounds(0, 0, ROOM_WIDTH, ROOM_HEIGHT);
 
@@ -123,8 +124,8 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private createSpot(spot: RoomSpot) {
-    const x = DOOR_X;
-    const y = SPOT_Y[spot.screen] ?? 300;
+    const pos = SPOT_POS[spot.screen] ?? { x: ROOM_WIDTH / 2, y: ROOM_HEIGHT / 2 };
+    const { x, y } = pos;
     const color = this.colorFor(spot);
 
     let shape: Phaser.GameObjects.Shape;
