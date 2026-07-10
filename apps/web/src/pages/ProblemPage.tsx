@@ -270,6 +270,9 @@ export function ProblemPage() {
                 部屋にもどる
               </button>
             </div>
+            {cardsFor("s2").length === 0 && questionsFor("s2").length === 0 && (
+              <p>この問題はまだ準備中です。他の問題(typical90_a)で試してみてね。</p>
+            )}
             <ExplanationCarousel cards={cardsFor("s2")} />
             <SmallBossBattle
               problemId={id!}
@@ -306,6 +309,9 @@ export function ProblemPage() {
                 部屋にもどる
               </button>
             </div>
+            {cardsFor("s4").length === 0 && questionsFor("s4").length === 0 && (
+              <p>この問題はまだ準備中です。他の問題(typical90_a)で試してみてね。</p>
+            )}
             <ExplanationCarousel cards={cardsFor("s4")} />
             {badSolutions.map((bad) => (
               <div key={bad.id}>
@@ -348,6 +354,9 @@ export function ProblemPage() {
                 部屋にもどる
               </button>
             </div>
+            {cardsFor("s6").length === 0 && questionsFor("s6").length === 0 && (
+              <p>この問題はまだ準備中です。他の問題(typical90_a)で試してみてね。</p>
+            )}
             <ExplanationCarousel cards={cardsFor("s6")} />
             {solutions.map((sol) => (
               <div key={sol.id}>
