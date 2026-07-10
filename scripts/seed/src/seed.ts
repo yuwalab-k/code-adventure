@@ -84,6 +84,27 @@ interface CodeReadingEntry {
   other_note?: string;
 }
 
+interface CheckpointCard {
+  title: string;
+  body: string;
+  variant?: "bad" | "good";
+}
+
+interface CheckpointQuestionEntry {
+  question: string;
+  choices: string[];
+  correct: number;
+  explanation: string;
+}
+
+type CheckpointScreen = "s2" | "s4" | "s6";
+
+interface CheckpointsFile {
+  [problemId: string]: Partial<
+    Record<CheckpointScreen, { cards?: CheckpointCard[]; questions?: CheckpointQuestionEntry[] }>
+  >;
+}
+
 const now = new Date().toISOString();
 const lines: string[] = [];
 const seenTags = new Set<string>();
@@ -185,6 +206,38 @@ for (const c of codeReading) {
     ["id", "name", "short", "body_md", "python_code", "other_note"],
     [c.id, c.name, c.short ?? null, c.body, c.python_code ?? null, c.other_note ?? null],
   );
+}
+
+// --- checkpoints (explanation cards + comprehension-check questions for S2/S4/S6) ---
+// Authored directly for the game, independent of the original data/problems/*.json —
+// not every problem needs this, and it isn't limited to what the old site had.
+const checkpoints: CheckpointsFile = JSON.parse(readFileSync(join(DATA_DIR, "checkpoints.json"), "utf-8"));
+for (const [problemId, screens] of Object.entries(checkpoints)) {
+  for (const [screen, content] of Object.entries(screens) as [CheckpointScreen, (typeof screens)[CheckpointScreen]][]) {
+    content?.cards?.forEach((card, i) => {
+      insert(
+        "explanation_cards",
+        ["id", "problem_id", "screen", "position", "title", "body_md", "variant"],
+        [`${problemId}_ec_${screen}_${i + 1}`, problemId, screen, i + 1, card.title, card.body, card.variant ?? null],
+      );
+    });
+    content?.questions?.forEach((q, i) => {
+      insert(
+        "checkpoint_questions",
+        ["id", "problem_id", "screen", "position", "question_md", "choices_json", "correct_choice_index", "explanation_md"],
+        [
+          `${problemId}_cq_${screen}_${i + 1}`,
+          problemId,
+          screen,
+          i + 1,
+          q.question,
+          JSON.stringify(q.choices),
+          q.correct,
+          q.explanation,
+        ],
+      );
+    });
+  }
 }
 
 writeFileSync(OUT_FILE, lines.join("\n") + "\n", "utf-8");
