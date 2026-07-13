@@ -1,6 +1,5 @@
 import Phaser from "phaser";
 import { generatePlayerTexture, generateMascotTexture, generateWorldIconTexture } from "./pixelTexture";
-import { addIdleWiggle } from "./wiggle";
 
 export interface WorldMapNode {
   id: string;
@@ -62,10 +61,8 @@ export class WorldMapScene extends Phaser.Scene {
     this.player = this.physics.add.sprite(PLAZA_WIDTH / 2, PLAZA_HEIGHT - 60, "player");
     this.player.setCollideWorldBounds(true);
     this.physics.world.setBounds(0, 0, PLAZA_WIDTH, PLAZA_HEIGHT);
-    addIdleWiggle(this, this.player);
 
     this.mascot = this.add.sprite(this.player.x - 20, this.player.y + 6, "mascot-companion");
-    addIdleWiggle(this, this.mascot);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
 
@@ -84,16 +81,14 @@ export class WorldMapScene extends Phaser.Scene {
   }
 
   private createStore() {
-    const sprite = this.add.sprite(STORE_X, STORE_Y, "world-icon-store");
-    addIdleWiggle(this, sprite);
+    this.add.sprite(STORE_X, STORE_Y, "world-icon-store");
     this.add
       .text(STORE_X, STORE_Y - 26, "ストア", { fontSize: "11px", color: "#ffffff", align: "center" })
       .setOrigin(0.5, 1);
   }
 
   private createDojo() {
-    const sprite = this.add.sprite(DOJO_X, DOJO_Y, "world-icon-dojo");
-    addIdleWiggle(this, sprite);
+    this.add.sprite(DOJO_X, DOJO_Y, "world-icon-dojo");
     this.add
       .text(DOJO_X, DOJO_Y - 26, "道場", { fontSize: "11px", color: "#ffffff", align: "center" })
       .setOrigin(0.5, 1);
@@ -104,8 +99,7 @@ export class WorldMapScene extends Phaser.Scene {
     const y = node.mapY ?? PLAZA_HEIGHT / 2 + 40;
 
     const tint = node.locked ? 0x444444 : node.cleared ? 0x888888 : 0xffffff;
-    const doorSprite = this.add.sprite(x, y, "world-icon-door").setTint(tint);
-    addIdleWiggle(this, doorSprite);
+    this.add.sprite(x, y, "world-icon-door").setTint(tint);
     this.add
       .text(x, y - 30, node.title, { fontSize: "11px", color: "#ffffff", align: "center" })
       .setOrigin(0.5, 1)

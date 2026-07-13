@@ -6,7 +6,6 @@ import {
   generateWorldIconTexture,
 } from "../worldmap/pixelTexture";
 import type { MonsterVariant } from "../monsters/monsterFrames";
-import { addIdleWiggle } from "../worldmap/wiggle";
 
 export interface RoomSpot {
   screen: string;
@@ -99,10 +98,8 @@ export class RoomScene extends Phaser.Scene {
     this.player = this.physics.add.sprite(DOOR_X, DOOR_Y - 40, "player");
     this.player.setCollideWorldBounds(true);
     this.physics.world.setBounds(0, 0, ROOM_WIDTH, ROOM_HEIGHT);
-    addIdleWiggle(this, this.player);
 
     this.mascot = this.add.sprite(this.player.x - 18, this.player.y + 6, "mascot-companion");
-    addIdleWiggle(this, this.mascot);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
 
@@ -144,8 +141,7 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private createDoor() {
-    const sprite = this.add.sprite(DOOR_X, DOOR_Y, "world-icon-door");
-    addIdleWiggle(this, sprite);
+    this.add.sprite(DOOR_X, DOOR_Y, "world-icon-door");
     this.add.text(DOOR_X, DOOR_Y - 22, "出口", { fontSize: "11px", color: "#ffffff" }).setOrigin(0.5, 1);
   }
 
@@ -162,7 +158,6 @@ export class RoomScene extends Phaser.Scene {
       const variant = MONSTER_VARIANT_FOR_SCREEN[spot.screen] ?? "m1";
       visual = this.add.sprite(x, y, `monster-${variant}`);
     }
-    addIdleWiggle(this, visual);
 
     this.add
       .text(x, y - 26, spot.label, { fontSize: "10px", color: "#ffffff", align: "center" })
