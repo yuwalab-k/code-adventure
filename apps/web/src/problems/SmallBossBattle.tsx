@@ -4,9 +4,9 @@ import { MonsterSprite } from "../monsters/MonsterSprite";
 import type { MonsterVariant } from "../monsters/monsterFrames";
 
 // Groups the checkpoint questions for one screen (S2/S4/S6) into a single
-// "monster" fight: each correct answer is one hit, all correct = defeated.
-// Renders only the fight content (sprite/HP/dialogue) — the caller is
-// responsible for the surrounding centered battle-box/overlay.
+// "make friends with the animal" encounter: each correct answer raises the
+// friendship meter, all correct = befriended. Renders only the encounter
+// content (sprite/meter/dialogue) — the caller owns the surrounding panel.
 export function SmallBossBattle({
   problemId,
   questions,
@@ -60,12 +60,13 @@ export function SmallBossBattle({
     return (
       <div className="monster-cleared">
         <MonsterSprite variant={variant} defeated />
-        <p>{monsterLabel}をたおした！</p>
+        <p>{monsterLabel}となかまになった！</p>
       </div>
     );
   }
 
-  const hpPercent = Math.round((remaining.length / questions.length) * 100);
+  const solved = questions.length - remaining.length;
+  const friendPercent = Math.round((solved / questions.length) * 100);
 
   return (
     <Fragment>
@@ -74,10 +75,10 @@ export function SmallBossBattle({
         <div className="battle-monster-info">
           <p className="battle-monster-name">{monsterLabel}</p>
           <div className="boss-hp-bar">
-            <div className="boss-hp-fill" style={{ width: `${hpPercent}%` }} />
+            <div className="boss-hp-fill" style={{ width: `${friendPercent}%` }} />
           </div>
           <p className="boss-hp-label">
-            のこりHP {remaining.length} / {questions.length}
+            なかよし度 {solved} / {questions.length}
           </p>
         </div>
       </div>

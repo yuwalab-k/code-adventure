@@ -90,7 +90,7 @@ interface ClearBigBossResponse {
 
 const BOSS_SCREENS: Screen[] = ["s2", "s4", "s6", "s7"];
 const MONSTER_INDEX: Record<string, number> = { s2: 1, s4: 2, s6: 3, s7: 4 };
-const MONSTER_LABEL: Record<string, string> = { s2: "モンスター1", s4: "モンスター2", s6: "モンスター3", s7: "ラスボス" };
+const MONSTER_LABEL: Record<string, string> = { s2: "きつね", s4: "うさぎ", s6: "ふくろう", s7: "くま" };
 const SPOT_LABEL: Record<Screen, string> = {
   s1: "問題",
   s2: MONSTER_LABEL.s2,
@@ -139,7 +139,7 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
 
   const visited = new Set((progressData?.progress ?? []).map((p) => p.screen));
 
-  // 小ボス3体+大ボスは、倒すまでは先の部屋のモンスターに近づけない。
+  // きつね・うさぎ・ふくろう・くまとは、なかよくなるまで奥の部屋に進めない。
   // それ以外(問題文・可視化・速度比較)には勝敗がないので通過するだけでよい。
   function isBossDefeated(s: Screen): boolean {
     if (s === "s2" || s === "s4" || s === "s6") return bossStatus?.smallBosses[s].defeated ?? false;
@@ -399,7 +399,7 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
                 部屋にもどる
               </button>
             </div>
-            <p>モンスター1〜3をたおすと、{MONSTER_LABEL.s7}があらわれるよ。</p>
+            <p>きつね・うさぎ・ふくろうとなかよくなると、{MONSTER_LABEL.s7}にあえるよ。</p>
           </div>
         </div>
       )}
@@ -409,7 +409,7 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
             <div className="panel-header">
               <p className="battle-monster-name">{MONSTER_LABEL.s7}</p>
               <button className="panel-close" onClick={closeSpot}>
-                にげる
+                またね
               </button>
             </div>
             <div className="battle-monster-row">
@@ -420,7 +420,7 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
             </div>
             <div className="checkpoint-choices">
               <button onClick={markBigBossDefeated}>
-                <span className="choice-cursor">▶</span> たたかう(仮)
+                <span className="choice-cursor">▶</span> なかよくなる(仮)
               </button>
             </div>
           </div>
@@ -437,7 +437,7 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
             </div>
             <div className="monster-cleared">
               <MonsterSprite variant="boss" defeated />
-              <p>{MONSTER_LABEL.s7}をたおした！この部屋はクリア済みです。</p>
+              <p>{MONSTER_LABEL.s7}となかまになった！この部屋はクリア済みです。</p>
             </div>
           </div>
         </div>

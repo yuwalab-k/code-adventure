@@ -491,22 +491,26 @@ button {
 
 /* --- boss battle visuals (Undertale風の中央オーバーレイ戦闘) --- */
 
+/* ドッキング型パネル(モーダルではない): 画面全体を暗転させず、下部だけに
+   固定表示する。ゲーム世界は上側に見えたまま、進んでいる感覚を保つ。 */
 .battle-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
-  align-items: flex-start;
   justify-content: center;
   z-index: 800;
   padding: 16px;
+  pointer-events: none;
 }
 
 .battle-box {
+  pointer-events: auto;
   width: 100%;
   max-width: 720px;
-  height: 50vh;
-  min-height: 320px;
+  height: 42vh;
+  min-height: 280px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -515,7 +519,7 @@ button {
   border: 3px solid #fff;
   border-radius: 4px;
   padding: 16px;
-  box-shadow: 0 0 0 3px #000, 0 12px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 3px #000, 0 -8px 24px rgba(0, 0, 0, 0.5);
   animation: battle-box-pop 0.25s ease;
 }
 

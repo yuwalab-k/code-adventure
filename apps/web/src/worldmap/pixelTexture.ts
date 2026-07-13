@@ -3,12 +3,17 @@ import { MASCOT_FRAMES, MASCOT_BODY, MASCOT_EYE } from "../mascot/frames";
 import { MONSTER_ROWS, MONSTER_BODY, MONSTER_EYE, type MonsterVariant } from "../monsters/monsterFrames";
 import { WORLD_ICON_ROWS, type WorldIconKind } from "./worldIcons";
 
+// One dot size for every pixel-art object in the game world (player, mascot,
+// monsters, buildings, doors) — the grid unit must match everywhere for it
+// to read as one consistent pixel-art world instead of mismatched scales.
+export const PIXEL_UNIT = 1.5;
+
 export function generatePixelTexture(
   scene: Phaser.Scene,
   key: string,
   rows: string[],
   palette: Record<string, number>,
-  cellSize = 6,
+  cellSize = PIXEL_UNIT,
 ): void {
   if (scene.textures.exists(key)) return;
 
@@ -50,7 +55,7 @@ const PLAYER_PALETTE: Record<string, number> = {
 };
 
 export function generatePlayerTexture(scene: Phaser.Scene, key = "player"): void {
-  generatePixelTexture(scene, key, PLAYER_ROWS, PLAYER_PALETTE, 1.5);
+  generatePixelTexture(scene, key, PLAYER_ROWS, PLAYER_PALETTE);
 }
 
 const MASCOT_PALETTE: Record<string, number> = {
@@ -60,16 +65,16 @@ const MASCOT_PALETTE: Record<string, number> = {
 };
 
 export function generateMascotTexture(scene: Phaser.Scene, key = "mascot-companion"): void {
-  generatePixelTexture(scene, key, MASCOT_FRAMES.idle, MASCOT_PALETTE, 1.5);
+  generatePixelTexture(scene, key, MASCOT_FRAMES.idle, MASCOT_PALETTE);
 }
 
-export function generateMonsterTexture(scene: Phaser.Scene, variant: MonsterVariant, cellSize = 3): string {
+export function generateMonsterTexture(scene: Phaser.Scene, variant: MonsterVariant): string {
   const key = `monster-${variant}`;
   const palette: Record<string, number> = {
     "1": Phaser.Display.Color.HexStringToColor(MONSTER_BODY[variant]).color,
     "2": Phaser.Display.Color.HexStringToColor(MONSTER_EYE[variant]).color,
   };
-  generatePixelTexture(scene, key, MONSTER_ROWS[variant], palette, cellSize);
+  generatePixelTexture(scene, key, MONSTER_ROWS[variant], palette);
   return key;
 }
 
@@ -79,9 +84,9 @@ const TINTABLE_WORLD_ICON_PALETTE: Record<string, number> = { "1": 0xffffff, "2"
 const FIXED_WORLD_ICON_PALETTE: Record<string, number> = { "1": 0xffffff, "2": 0x333333 };
 const TINTABLE_WORLD_ICONS: WorldIconKind[] = ["door", "training"];
 
-export function generateWorldIconTexture(scene: Phaser.Scene, kind: WorldIconKind, cellSize = 4): string {
+export function generateWorldIconTexture(scene: Phaser.Scene, kind: WorldIconKind): string {
   const key = `world-icon-${kind}`;
   const palette = TINTABLE_WORLD_ICONS.includes(kind) ? TINTABLE_WORLD_ICON_PALETTE : FIXED_WORLD_ICON_PALETTE;
-  generatePixelTexture(scene, key, WORLD_ICON_ROWS[kind], palette, cellSize);
+  generatePixelTexture(scene, key, WORLD_ICON_ROWS[kind], palette);
   return key;
 }

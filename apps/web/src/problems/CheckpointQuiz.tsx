@@ -78,7 +78,7 @@ export function CheckpointQuiz({
   if (defeated) {
     return (
       <div className="checkpoint-quiz defeated boss-hit-flash">
-        たおした！
+        なかよくなった！
         {xpGained > 0 && <span className="xp-popup">+{xpGained} XP</span>}
       </div>
     );
