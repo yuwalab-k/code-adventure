@@ -6,6 +6,7 @@ import {
   generateWorldIconTexture,
 } from "../worldmap/pixelTexture";
 import type { MonsterVariant } from "../monsters/monsterFrames";
+import { addIdleWiggle } from "../worldmap/wiggle";
 
 export interface RoomSpot {
   screen: string;
@@ -50,8 +51,8 @@ const MONSTER_VARIANT_FOR_SCREEN: Record<string, MonsterVariant> = {
   s7: "boss",
 };
 
-const LOCKED_TINT = 0xaaaaaa;
-const DEFEATED_TINT = 0x777777;
+const LOCKED_TINT = 0x444444;
+const DEFEATED_TINT = 0x888888;
 
 export class RoomScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
@@ -98,8 +99,10 @@ export class RoomScene extends Phaser.Scene {
     this.player = this.physics.add.sprite(DOOR_X, DOOR_Y - 40, "player");
     this.player.setCollideWorldBounds(true);
     this.physics.world.setBounds(0, 0, ROOM_WIDTH, ROOM_HEIGHT);
+    addIdleWiggle(this, this.player);
 
     this.mascot = this.add.sprite(this.player.x - 18, this.player.y + 6, "mascot-companion");
+    addIdleWiggle(this, this.mascot);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
 
@@ -118,9 +121,9 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private tintFor(spot: RoomSpot): number {
-    if (spot.locked) return 0xaaaaaa;
-    if (spot.defeated) return 0x777777;
-    return 0x111111;
+    if (spot.locked) return 0x444444;
+    if (spot.defeated) return 0x888888;
+    return 0xffffff;
   }
 
   private applyVisualState(spot: RoomSpot) {
@@ -141,8 +144,9 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private createDoor() {
-    this.add.sprite(DOOR_X, DOOR_Y, "world-icon-door").setTint(0x444444);
-    this.add.text(DOOR_X, DOOR_Y - 22, "出口", { fontSize: "11px", color: "#000000" }).setOrigin(0.5, 1);
+    const sprite = this.add.sprite(DOOR_X, DOOR_Y, "world-icon-door");
+    addIdleWiggle(this, sprite);
+    this.add.text(DOOR_X, DOOR_Y - 22, "出口", { fontSize: "11px", color: "#ffffff" }).setOrigin(0.5, 1);
   }
 
   private createSpot(spot: RoomSpot) {
@@ -151,16 +155,17 @@ export class RoomScene extends Phaser.Scene {
 
     let visual: Phaser.GameObjects.Sprite;
     if (spot.kind === "plaque") {
-      visual = this.add.sprite(x, y, "world-icon-plaque").setTint(0x222222);
+      visual = this.add.sprite(x, y, "world-icon-plaque");
     } else if (spot.kind === "training") {
       visual = this.add.sprite(x, y, "world-icon-training").setTint(this.tintFor(spot));
     } else {
       const variant = MONSTER_VARIANT_FOR_SCREEN[spot.screen] ?? "m1";
       visual = this.add.sprite(x, y, `monster-${variant}`);
     }
+    addIdleWiggle(this, visual);
 
     this.add
-      .text(x, y - 26, spot.label, { fontSize: "10px", color: "#000000", align: "center" })
+      .text(x, y - 26, spot.label, { fontSize: "10px", color: "#ffffff", align: "center" })
       .setOrigin(0.5, 1)
       .setWordWrapWidth(80);
 

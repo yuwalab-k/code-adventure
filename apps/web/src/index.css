@@ -1,14 +1,14 @@
 :root {
-  /* レトロゲーム風モノクロ配色(一旦の方針)。紫のアクセントをやめて白黒濃淡に統一。 */
-  --color-bg: #ffffff;
-  --color-text: #111111;
-  --color-header-bg: #e8e8e8;
-  --color-accent: #111111;
-  --color-correct: #000000;
-  --color-incorrect: #555555;
-  --color-emphasis: #707070;
+  /* レトロゲーム風モノクロ配色: 黒背景に白で描画(BABA IS YOU方向)。 */
+  --color-bg: #000000;
+  --color-text: #ffffff;
+  --color-header-bg: #1a1a1a;
+  --color-accent: #ffffff;
+  --color-correct: #ffffff;
+  --color-incorrect: #999999;
+  --color-emphasis: #aaaaaa;
   --color-console-bg: #111111;
-  --color-border: #cccccc;
+  --color-border: #555555;
 
   --font-body: 'DotGothic16', monospace;
   --font-code: 'Google Sans Code', ui-monospace, monospace;
@@ -102,7 +102,7 @@ button {
 
 .login-form button {
   background: var(--color-accent);
-  color: #fff;
+  color: #000;
   border: none;
   border-radius: 8px;
   padding: 10px;
@@ -148,7 +148,8 @@ button {
   right: 0;
   max-width: 180px;
   background: #fff;
-  border: 2px solid var(--color-accent);
+  color: #000;
+  border: 2px solid #000;
   border-radius: 8px;
   padding: 8px 10px;
   font-size: 12px;

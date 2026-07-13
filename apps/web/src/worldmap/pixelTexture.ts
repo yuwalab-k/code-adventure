@@ -42,11 +42,11 @@ const PLAYER_ROWS = [
 ];
 
 const PLAYER_PALETTE: Record<string, number> = {
-  "2": 0x333333, // hair
-  f: 0xeeeeee, // skin
+  "2": 0xffffff, // hair
+  f: 0xaaaaaa, // skin
   "1": 0x000000, // eyes
-  "3": 0x555555, // shirt
-  "4": 0x000000, // pants
+  "3": 0x777777, // shirt
+  "4": 0x333333, // pants
 };
 
 export function generatePlayerTexture(scene: Phaser.Scene, key = "player"): void {
@@ -76,7 +76,7 @@ export function generateMonsterTexture(scene: Phaser.Scene, variant: MonsterVari
 // door/training icons stay near-white so setTint() can fully recolor them
 // for locked/cleared/available state, same convention as monster tinting.
 const TINTABLE_WORLD_ICON_PALETTE: Record<string, number> = { "1": 0xffffff, "2": 0xdddddd };
-const FIXED_WORLD_ICON_PALETTE: Record<string, number> = { "1": 0x222222, "2": 0xffffff };
+const FIXED_WORLD_ICON_PALETTE: Record<string, number> = { "1": 0xffffff, "2": 0x333333 };
 const TINTABLE_WORLD_ICONS: WorldIconKind[] = ["door", "training"];
 
 export function generateWorldIconTexture(scene: Phaser.Scene, kind: WorldIconKind, cellSize = 4): string {

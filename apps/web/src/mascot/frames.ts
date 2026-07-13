@@ -1,9 +1,11 @@
-// Ported directly from the original code-sensei mascot
-// (docs/problems/typical90_a.html) — same 10x10 grid data, same colors.
+// Ported from the original code-sensei mascot (docs/problems/typical90_a.html)
+// — same 10x10 grid data. Colors are inverted (light body / dark eye) from
+// the original dark-body port so the shape stays visible against the game's
+// black background; the pixel arrangement itself is unchanged.
 // '0' = transparent, '1' = body, '2' = eye, '3' = mood accent (mouth).
 
-export const MASCOT_BODY = "#37474f";
-export const MASCOT_EYE = "#fff";
+export const MASCOT_BODY = "#eeeeee";
+export const MASCOT_EYE = "#000000";
 export const MASCOT_HAPPY = "#2e7d32";
 export const MASCOT_SAD = "#c62828";
 

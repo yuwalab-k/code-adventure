@@ -24,7 +24,7 @@ export function RoomCanvas({
     const game = new Phaser.Game({
       type: Phaser.AUTO,
       parent: containerRef.current,
-      backgroundColor: "#ffffff",
+      backgroundColor: "#000000",
       pixelArt: true,
       scale: {
         mode: Phaser.Scale.RESIZE,

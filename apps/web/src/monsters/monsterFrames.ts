@@ -69,18 +69,19 @@ export const MONSTER_ROWS: Record<MonsterVariant, string[]> = {
   boss: BOSS_ROWS,
 };
 
+// モノクロ方針: 色でモンスターを区別せず、形(SLIME/GOBLIN/BAT/BOSSのシルエット)で区別する。
 export const MONSTER_BODY: Record<MonsterVariant, string> = {
-  m1: "#16a34a",
-  m2: "#d97706",
-  m3: "#6d28d9",
-  boss: "#7c1d3f",
+  m1: "#ffffff",
+  m2: "#ffffff",
+  m3: "#ffffff",
+  boss: "#ffffff",
 };
 
 export const MONSTER_EYE: Record<MonsterVariant, string> = {
-  m1: "#052e16",
-  m2: "#ef4444",
-  m3: "#facc15",
-  boss: "#fbbf24",
+  m1: "#000000",
+  m2: "#000000",
+  m3: "#000000",
+  boss: "#000000",
 };
 
 export function colorForMonster(char: string, variant: MonsterVariant): string | null {
