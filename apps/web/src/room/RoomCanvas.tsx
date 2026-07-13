@@ -4,17 +4,17 @@ import { RoomScene, type RoomSpot } from "./RoomScene";
 
 export function RoomCanvas({
   spots,
-  onEnterSpot,
+  onSpotChanged,
   onExit,
 }: {
   spots: RoomSpot[];
-  onEnterSpot: (screen: string) => void;
+  onSpotChanged: (screen: string | null) => void;
   onExit: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
-  const onEnterSpotRef = useRef(onEnterSpot);
-  onEnterSpotRef.current = onEnterSpot;
+  const onSpotChangedRef = useRef(onSpotChanged);
+  onSpotChangedRef.current = onSpotChanged;
   const onExitRef = useRef(onExit);
   onExitRef.current = onExit;
 
@@ -36,7 +36,7 @@ export function RoomCanvas({
     });
 
     game.registry.set("spots", spots);
-    game.events.on("enter-spot", (screen: string) => onEnterSpotRef.current(screen));
+    game.events.on("spot-changed", (screen: string | null) => onSpotChangedRef.current(screen));
     game.events.on("exit-room", () => onExitRef.current());
 
     gameRef.current = game;

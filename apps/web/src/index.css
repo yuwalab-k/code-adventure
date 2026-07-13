@@ -60,6 +60,44 @@ main.game-page {
   display: block;
 }
 
+/* 部屋: モーダルではなく左に常設サイドバー、右にゲーム画面を並べる。 */
+.room-layout {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.room-sidebar {
+  flex: 0 0 340px;
+  max-width: 40vw;
+  background: var(--color-console-bg);
+  color: #fff;
+  border-right: 2px solid #fff;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.room-sidebar-idle {
+  color: #999999;
+}
+
+.room-canvas-area {
+  position: relative;
+  flex: 1 1 auto;
+}
+
+@media (max-width: 700px) {
+  .room-layout {
+    flex-direction: column;
+  }
+  .room-sidebar {
+    flex: 0 0 45%;
+    max-width: none;
+    border-right: none;
+    border-bottom: 2px solid #fff;
+  }
+}
+
 .game-loading {
   position: fixed;
   top: 50%;

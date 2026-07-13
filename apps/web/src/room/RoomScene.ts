@@ -60,7 +60,8 @@ export class RoomScene extends Phaser.Scene {
   private spotPositions: SpotPosition[] = [];
   private spotVisuals: Record<string, Phaser.GameObjects.Sprite> = {};
   private spotData: Record<string, RoomSpot> = {};
-  private entered = false;
+  private currentNearby: string | null = null;
+  private exited = false;
   private moveTarget: Phaser.Math.Vector2 | null = null;
 
   constructor() {
@@ -77,7 +78,8 @@ export class RoomScene extends Phaser.Scene {
   }
 
   create() {
-    this.entered = false;
+    this.currentNearby = null;
+    this.exited = false;
     this.moveTarget = null;
     this.spotPositions = [];
     this.spotVisuals = {};
@@ -202,28 +204,26 @@ export class RoomScene extends Phaser.Scene {
     this.mascot.y = Phaser.Math.Linear(this.mascot.y, this.player.y + 6 + bob, 0.08);
 
     const nearDoor = Phaser.Math.Distance.Between(this.player.x, this.player.y, DOOR_X, DOOR_Y) < TOUCH_RADIUS;
+    if (nearDoor) {
+      if (!this.exited) {
+        this.exited = true;
+        this.game.events.emit("exit-room");
+      }
+      return;
+    }
+
+    // Reports the currently-nearby spot continuously (not a one-shot
+    // trigger) — the side panel just reflects proximity, walking away
+    // reverts it to idle on its own instead of needing a close button.
     const nearSpot = this.spotPositions.find(
       (p) =>
         !this.spotData[p.screen]?.locked &&
         Phaser.Math.Distance.Between(this.player.x, this.player.y, p.x, p.y) < TOUCH_RADIUS,
     );
-
-    // Re-arms once the player has walked away from every trigger zone, so
-    // returning to an already-visited spot (or the door) can fire again.
-    if (!nearDoor && !nearSpot) {
-      this.entered = false;
-      return;
-    }
-    if (this.entered) return;
-
-    if (nearDoor) {
-      this.entered = true;
-      this.game.events.emit("exit-room");
-      return;
-    }
-    if (nearSpot) {
-      this.entered = true;
-      this.game.events.emit("enter-spot", nearSpot.screen);
+    const nearScreen = nearSpot?.screen ?? null;
+    if (nearScreen !== this.currentNearby) {
+      this.currentNearby = nearScreen;
+      this.game.events.emit("spot-changed", nearScreen);
     }
   }
 }

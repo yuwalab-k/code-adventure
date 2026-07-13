@@ -106,7 +106,7 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
   const queryClient = useQueryClient();
   const { say } = useMascot();
   const { user, refreshUser } = useAuth();
-  const [openSpot, setOpenSpot] = useState<Screen | null>(null);
+  const [nearbySpot, setNearbySpot] = useState<Screen | null>(null);
   const [levelUpFlash, setLevelUpFlash] = useState(false);
   const [clearReward, setClearReward] = useState<ClearReward | null>(null);
 
@@ -155,17 +155,18 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
     return false;
   }
 
-  function openSpotHandler(rawScreen: string) {
-    const screen = rawScreen as Screen;
-    if (isLocked(screen)) return;
-    setOpenSpot(screen);
-    say(PROBLEM_SCREEN_TIPS[screen]);
-    markProgress.mutate({ screen, status: "in_progress" });
-  }
-
-  function closeSpot() {
-    if (openSpot) markProgress.mutate({ screen: openSpot, status: "completed" });
-    setOpenSpot(null);
+  // The side panel just mirrors "what the player is currently standing
+  // next to" — no open/close click needed, walking away reverts to idle.
+  function handleSpotChanged(rawScreen: string | null) {
+    const screen = rawScreen as Screen | null;
+    if (screen && isLocked(screen)) return;
+    if (screen === nearbySpot) return;
+    if (nearbySpot) markProgress.mutate({ screen: nearbySpot, status: "completed" });
+    setNearbySpot(screen);
+    if (screen) {
+      say(PROBLEM_SCREEN_TIPS[screen]);
+      markProgress.mutate({ screen, status: "in_progress" });
+    }
   }
 
   async function markBigBossDefeated() {
@@ -199,7 +200,7 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
   }));
 
   return (
-    <>
+    <div className="room-layout">
       {levelUpFlash && <div className="level-up-banner">LEVEL UP! Lv.{user?.level}</div>}
 
       {clearReward && (
@@ -209,28 +210,18 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
             +{clearReward.xpGained} XP / +{clearReward.coinsGained} コイン
             {clearReward.itemGranted && " / アイテム獲得!"}
           </p>
-          <button
-            onClick={() => {
-              setClearReward(null);
-              closeSpot();
-            }}
-          >
-            とじる
-          </button>
+          <button onClick={() => setClearReward(null)}>とじる</button>
         </div>
       )}
 
-      <RoomCanvas spots={spots} onEnterSpot={openSpotHandler} onExit={onExit} />
+      <aside className="room-sidebar">
+        {!nearbySpot && (
+          <p className="room-sidebar-idle">部屋を歩いて、なかまや看板に近づこう。</p>
+        )}
 
-      {openSpot === "s1" && (
-        <div className="battle-overlay">
-          <div className="battle-box">
-            <div className="panel-header">
-              <p className="battle-monster-name">{problem.title}</p>
-              <button className="panel-close" onClick={closeSpot}>
-                部屋にもどる
-              </button>
-            </div>
+        {nearbySpot === "s1" && (
+          <>
+            <p className="battle-monster-name">{problem.title}</p>
             <PagedPanel
               pages={[
                 <div key="statement">
@@ -269,19 +260,12 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
                 </div>,
               ]}
             />
-          </div>
-        </div>
-      )}
+          </>
+        )}
 
-      {openSpot === "s2" && (
-        <div className="battle-overlay">
-          <div className="battle-box">
-            <div className="panel-header">
-              <p className="battle-monster-name">かいせつ</p>
-              <button className="panel-close" onClick={closeSpot}>
-                部屋にもどる
-              </button>
-            </div>
+        {nearbySpot === "s2" && (
+          <>
+            <p className="battle-monster-name">かいせつ</p>
             {cardsFor("s2").length === 0 && questionsFor("s2").length === 0 && (
               <p>この問題はまだ準備中です。他の問題(typical90_a)で試してみてね。</p>
             )}
@@ -292,35 +276,21 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
               alreadyDefeated={bossStatus?.smallBosses.s2.defeated ?? false}
               monsterIndex={MONSTER_INDEX.s2}
               monsterLabel={MONSTER_LABEL.s2}
-              onAllDefeated={closeSpot}
+              onAllDefeated={() => handleSpotChanged(null)}
             />
-          </div>
-        </div>
-      )}
+          </>
+        )}
 
-      {openSpot === "s3" && (
-        <div className="battle-overlay">
-          <div className="battle-box">
-            <div className="panel-header">
-              <p className="battle-monster-name">たしかめ</p>
-              <button className="panel-close" onClick={closeSpot}>
-                部屋にもどる
-              </button>
-            </div>
+        {nearbySpot === "s3" && (
+          <>
+            <p className="battle-monster-name">たしかめ</p>
             <p>この問題専用のステップ可視化は準備中です。</p>
-          </div>
-        </div>
-      )}
+          </>
+        )}
 
-      {openSpot === "s4" && (
-        <div className="battle-overlay">
-          <div className="battle-box">
-            <div className="panel-header">
-              <p className="battle-monster-name">まちがいさがし</p>
-              <button className="panel-close" onClick={closeSpot}>
-                部屋にもどる
-              </button>
-            </div>
+        {nearbySpot === "s4" && (
+          <>
+            <p className="battle-monster-name">まちがいさがし</p>
             {cardsFor("s4").length === 0 && questionsFor("s4").length === 0 && (
               <p>この問題はまだ準備中です。他の問題(typical90_a)で試してみてね。</p>
             )}
@@ -337,35 +307,21 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
               alreadyDefeated={bossStatus?.smallBosses.s4.defeated ?? false}
               monsterIndex={MONSTER_INDEX.s4}
               monsterLabel={MONSTER_LABEL.s4}
-              onAllDefeated={closeSpot}
+              onAllDefeated={() => handleSpotChanged(null)}
             />
-          </div>
-        </div>
-      )}
+          </>
+        )}
 
-      {openSpot === "s5" && (
-        <div className="battle-overlay">
-          <div className="battle-box">
-            <div className="panel-header">
-              <p className="battle-monster-name">速度比較</p>
-              <button className="panel-close" onClick={closeSpot}>
-                部屋にもどる
-              </button>
-            </div>
+        {nearbySpot === "s5" && (
+          <>
+            <p className="battle-monster-name">速度比較</p>
             <p>速度比較は準備中です。</p>
-          </div>
-        </div>
-      )}
+          </>
+        )}
 
-      {openSpot === "s6" && (
-        <div className="battle-overlay">
-          <div className="battle-box">
-            <div className="panel-header">
-              <p className="battle-monster-name">せいかい</p>
-              <button className="panel-close" onClick={closeSpot}>
-                部屋にもどる
-              </button>
-            </div>
+        {nearbySpot === "s6" && (
+          <>
+            <p className="battle-monster-name">せいかい</p>
             {cardsFor("s6").length === 0 && questionsFor("s6").length === 0 && (
               <p>この問題はまだ準備中です。他の問題(typical90_a)で試してみてね。</p>
             )}
@@ -384,34 +340,20 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
               alreadyDefeated={bossStatus?.smallBosses.s6.defeated ?? false}
               monsterIndex={MONSTER_INDEX.s6}
               monsterLabel={MONSTER_LABEL.s6}
-              onAllDefeated={closeSpot}
+              onAllDefeated={() => handleSpotChanged(null)}
             />
-          </div>
-        </div>
-      )}
+          </>
+        )}
 
-      {openSpot === "s7" && !s7Unlocked && (
-        <div className="battle-overlay">
-          <div className="battle-box">
-            <div className="panel-header">
-              <p className="battle-monster-name">{MONSTER_LABEL.s7}のとびら</p>
-              <button className="panel-close" onClick={closeSpot}>
-                部屋にもどる
-              </button>
-            </div>
+        {nearbySpot === "s7" && !s7Unlocked && (
+          <>
+            <p className="battle-monster-name">{MONSTER_LABEL.s7}のとびら</p>
             <p>きつね・うさぎ・ふくろうとなかよくなると、{MONSTER_LABEL.s7}にあえるよ。</p>
-          </div>
-        </div>
-      )}
-      {openSpot === "s7" && s7Unlocked && !bossStatus?.bigBoss.defeated && (
-        <div className="battle-overlay">
-          <div className="battle-box">
-            <div className="panel-header">
-              <p className="battle-monster-name">{MONSTER_LABEL.s7}</p>
-              <button className="panel-close" onClick={closeSpot}>
-                またね
-              </button>
-            </div>
+          </>
+        )}
+        {nearbySpot === "s7" && s7Unlocked && !bossStatus?.bigBoss.defeated && (
+          <>
+            <p className="battle-monster-name">{MONSTER_LABEL.s7}</p>
             <div className="battle-monster-row">
               <MonsterSprite variant="boss" />
             </div>
@@ -423,25 +365,22 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
                 <span className="choice-cursor">▶</span> なかよくなる(仮)
               </button>
             </div>
-          </div>
-        </div>
-      )}
-      {openSpot === "s7" && bossStatus?.bigBoss.defeated && (
-        <div className="battle-overlay">
-          <div className="battle-box">
-            <div className="panel-header">
-              <p className="battle-monster-name">{MONSTER_LABEL.s7}</p>
-              <button className="panel-close" onClick={closeSpot}>
-                部屋にもどる
-              </button>
-            </div>
+          </>
+        )}
+        {nearbySpot === "s7" && bossStatus?.bigBoss.defeated && (
+          <>
+            <p className="battle-monster-name">{MONSTER_LABEL.s7}</p>
             <div className="monster-cleared">
               <MonsterSprite variant="boss" defeated />
               <p>{MONSTER_LABEL.s7}となかまになった！この部屋はクリア済みです。</p>
             </div>
-          </div>
-        </div>
-      )}
-    </>
+          </>
+        )}
+      </aside>
+
+      <div className="room-canvas-area">
+        <RoomCanvas spots={spots} onSpotChanged={handleSpotChanged} onExit={onExit} />
+      </div>
+    </div>
   );
 }
