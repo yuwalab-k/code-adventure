@@ -6,6 +6,8 @@ interface MascotState {
   message: string | null;
   setMood: (mood: "happy" | "sad", message: string) => void;
   say: (message: string, durationMs?: number) => void;
+  hideWidget: boolean;
+  setHideWidget: (hidden: boolean) => void;
 }
 
 const MascotContext = createContext<MascotState | null>(null);
@@ -16,6 +18,7 @@ const SAY_RESET_MS = 3000;
 export function MascotProvider({ children }: { children: ReactNode }) {
   const [mood, setMoodState] = useState<MascotMood>("idle");
   const [message, setMessage] = useState<string | null>(null);
+  const [hideWidget, setHideWidget] = useState(false);
 
   const setMood = useCallback((newMood: "happy" | "sad", newMessage: string) => {
     setMoodState(newMood);
@@ -31,7 +34,11 @@ export function MascotProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setMessage(null), durationMs);
   }, []);
 
-  return <MascotContext.Provider value={{ mood, message, setMood, say }}>{children}</MascotContext.Provider>;
+  return (
+    <MascotContext.Provider value={{ mood, message, setMood, say, hideWidget, setHideWidget }}>
+      {children}
+    </MascotContext.Provider>
+  );
 }
 
 export function useMascot(): MascotState {

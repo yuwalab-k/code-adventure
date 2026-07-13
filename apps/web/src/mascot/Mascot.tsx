@@ -14,7 +14,7 @@ function randomTrivia(): string {
 }
 
 export function Mascot() {
-  const { mood, message } = useMascot();
+  const { mood, message, hideWidget } = useMascot();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [blinking, setBlinking] = useState(false);
   const [trick, setTrick] = useState<Trick>(null);
@@ -84,6 +84,8 @@ export function Mascot() {
   }
 
   const displayedMessage = message ?? speech;
+
+  if (hideWidget) return null;
 
   return (
     <div className={`mascot-wrap${bigCenter ? " center" : ""}${trick ? ` trick-${trick}` : ""}`}>

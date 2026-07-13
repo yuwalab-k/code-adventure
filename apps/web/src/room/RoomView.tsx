@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { useMascot } from "../mascot/MascotContext";
 import { useAuth } from "../auth/AuthContext";
@@ -8,9 +7,8 @@ import { PROBLEM_SCREEN_TIPS } from "../mascot/sceneTips";
 import { ExplanationCarousel, type ExplanationCard } from "../problems/ExplanationCarousel";
 import { SmallBossBattle } from "../problems/SmallBossBattle";
 import type { CheckpointQuestion } from "../problems/CheckpointQuiz";
-import { RoomCanvas } from "../room/RoomCanvas";
-import type { RoomSpot } from "../room/RoomScene";
-import { GameMenu } from "../game/GameMenu";
+import { RoomCanvas } from "./RoomCanvas";
+import type { RoomSpot } from "./RoomScene";
 import { MonsterSprite } from "../monsters/MonsterSprite";
 
 const SCREENS = ["s1", "s2", "s3", "s4", "s5", "s6", "s7"] as const;
@@ -102,9 +100,8 @@ const SPOT_LABEL: Record<Screen, string> = {
   s7: MONSTER_LABEL.s7,
 };
 
-export function ProblemPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+export function RoomView({ problemId, onExit }: { problemId: string; onExit: () => void }) {
+  const id = problemId;
   const queryClient = useQueryClient();
   const { say } = useMascot();
   const { user, refreshUser } = useAuth();
@@ -184,8 +181,8 @@ export function ProblemPage() {
     }
   }
 
-  if (isLoading) return <main>よみこみちゅう...</main>;
-  if (error || !data) return <main>読み込みに失敗しました</main>;
+  if (isLoading) return <p className="game-loading">よみこみちゅう...</p>;
+  if (error || !data) return <p className="game-loading">読み込みに失敗しました</p>;
 
   const { problem, samples, solutions, badSolutions, explanationCards, checkpointQuestions, tags } = data;
   const cardsFor = (s: string) => explanationCards.filter((c) => c.screen === s);
@@ -201,9 +198,7 @@ export function ProblemPage() {
   }));
 
   return (
-    <main className="game-page">
-      <GameMenu extraLinks={[{ label: "地図へ戻る", to: "/map" }]} />
-
+    <>
       {levelUpFlash && <div className="level-up-banner">LEVEL UP! Lv.{user?.level}</div>}
 
       {clearReward && (
@@ -224,7 +219,7 @@ export function ProblemPage() {
         </div>
       )}
 
-      <RoomCanvas spots={spots} onEnterSpot={openSpotHandler} onExit={() => navigate("/map")} />
+      <RoomCanvas spots={spots} onEnterSpot={openSpotHandler} onExit={onExit} />
 
       {openSpot === "s1" && (
         <div className="battle-overlay">
@@ -276,7 +271,7 @@ export function ProblemPage() {
             )}
             <ExplanationCarousel cards={cardsFor("s2")} />
             <SmallBossBattle
-              problemId={id!}
+              problemId={id}
               questions={questionsFor("s2")}
               alreadyDefeated={bossStatus?.smallBosses.s2.defeated ?? false}
               monsterIndex={MONSTER_INDEX.s2}
@@ -321,7 +316,7 @@ export function ProblemPage() {
               </div>
             ))}
             <SmallBossBattle
-              problemId={id!}
+              problemId={id}
               questions={questionsFor("s4")}
               alreadyDefeated={bossStatus?.smallBosses.s4.defeated ?? false}
               monsterIndex={MONSTER_INDEX.s4}
@@ -366,7 +361,7 @@ export function ProblemPage() {
               </div>
             ))}
             <SmallBossBattle
-              problemId={id!}
+              problemId={id}
               questions={questionsFor("s6")}
               alreadyDefeated={bossStatus?.smallBosses.s6.defeated ?? false}
               monsterIndex={MONSTER_INDEX.s6}
@@ -429,6 +424,6 @@ export function ProblemPage() {
           </div>
         </div>
       )}
-    </main>
+    </>
   );
 }
