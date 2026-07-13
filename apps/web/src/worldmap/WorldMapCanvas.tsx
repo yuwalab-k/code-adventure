@@ -6,10 +6,12 @@ export function WorldMapCanvas({
   nodes,
   onEnterProblem,
   onEnterStore,
+  onEnterDojo,
 }: {
   nodes: WorldMapNode[];
   onEnterProblem: (problemId: string) => void;
   onEnterStore: () => void;
+  onEnterDojo: () => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -17,6 +19,8 @@ export function WorldMapCanvas({
   onEnterProblemRef.current = onEnterProblem;
   const onEnterStoreRef = useRef(onEnterStore);
   onEnterStoreRef.current = onEnterStore;
+  const onEnterDojoRef = useRef(onEnterDojo);
+  onEnterDojoRef.current = onEnterDojo;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -38,6 +42,7 @@ export function WorldMapCanvas({
     game.registry.set("nodes", nodes);
     game.events.on("enter-problem", (problemId: string) => onEnterProblemRef.current(problemId));
     game.events.on("enter-store", () => onEnterStoreRef.current());
+    game.events.on("enter-dojo", () => onEnterDojoRef.current());
 
     gameRef.current = game;
     return () => {

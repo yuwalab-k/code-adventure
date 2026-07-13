@@ -11,6 +11,7 @@ import type { CheckpointQuestion } from "../problems/CheckpointQuiz";
 import { RoomCanvas } from "../room/RoomCanvas";
 import type { RoomSpot } from "../room/RoomScene";
 import { GameMenu } from "../game/GameMenu";
+import { MonsterSprite } from "../monsters/MonsterSprite";
 
 const SCREENS = ["s1", "s2", "s3", "s4", "s5", "s6", "s7"] as const;
 type Screen = (typeof SCREENS)[number];
@@ -399,7 +400,7 @@ export function ProblemPage() {
               </button>
             </div>
             <div className="battle-monster-row">
-              <div className="boss-sprite final" />
+              <MonsterSprite variant="boss" />
             </div>
             <div className="monster-dialogue">
               <p>この問題専用の体験演習は準備中です。</p>
@@ -422,7 +423,7 @@ export function ProblemPage() {
               </button>
             </div>
             <div className="monster-cleared">
-              <div className="boss-sprite defeated final" />
+              <MonsterSprite variant="boss" defeated />
               <p>{MONSTER_LABEL.s7}をたおした！この部屋はクリア済みです。</p>
             </div>
           </div>

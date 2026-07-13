@@ -19,6 +19,8 @@ const ARRIVE_RADIUS = 6;
 const ZOOM = 1.4;
 const STORE_X = 90;
 const STORE_Y = 90;
+const DOJO_X = 700;
+const DOJO_Y = 90;
 
 interface DoorObject {
   node: WorldMapNode;
@@ -61,6 +63,7 @@ export class WorldMapScene extends Phaser.Scene {
     );
 
     this.createStore();
+    this.createDojo();
 
     const nodes = (this.registry.get("nodes") as WorldMapNode[]) ?? [];
     this.doors = nodes.map((node, index) => this.createDoor(node, index, nodes.length));
@@ -92,6 +95,14 @@ export class WorldMapScene extends Phaser.Scene {
     this.add.rectangle(STORE_X, STORE_Y - 20, 72, 20, 0xe11d48).setStrokeStyle(2, 0x2b2440);
     this.add
       .text(STORE_X, STORE_Y - 46, "ストア", { fontSize: "11px", color: "#2b2440", align: "center" })
+      .setOrigin(0.5, 1);
+  }
+
+  private createDojo() {
+    this.add.rectangle(DOJO_X, DOJO_Y, 64, 56, 0x2563eb).setStrokeStyle(2, 0x2b2440);
+    this.add.rectangle(DOJO_X, DOJO_Y - 20, 72, 20, 0x1e3a8a).setStrokeStyle(2, 0x2b2440);
+    this.add
+      .text(DOJO_X, DOJO_Y - 46, "道場", { fontSize: "11px", color: "#2b2440", align: "center" })
       .setOrigin(0.5, 1);
   }
 
@@ -147,22 +158,34 @@ export class WorldMapScene extends Phaser.Scene {
     this.mascot.x = Phaser.Math.Linear(this.mascot.x, targetX, 0.08);
     this.mascot.y = Phaser.Math.Linear(this.mascot.y, targetY, 0.08);
 
+    const nearStore = Phaser.Math.Distance.Between(this.player.x, this.player.y, STORE_X, STORE_Y) < TOUCH_RADIUS;
+    const nearDojo = Phaser.Math.Distance.Between(this.player.x, this.player.y, DOJO_X, DOJO_Y) < TOUCH_RADIUS;
+    const nearDoor = this.doors.find(
+      (door) => !door.node.locked && Phaser.Math.Distance.Between(this.player.x, this.player.y, door.x, door.y) < TOUCH_RADIUS,
+    );
+
+    // Re-arms once the player has walked away from every trigger zone —
+    // needed because the dojo opens as an overlay without leaving this
+    // scene, so its trigger must be able to fire again on a later visit.
+    if (!nearStore && !nearDojo && !nearDoor) {
+      this.entered = false;
+      return;
+    }
     if (this.entered) return;
 
-    if (Phaser.Math.Distance.Between(this.player.x, this.player.y, STORE_X, STORE_Y) < TOUCH_RADIUS) {
+    if (nearStore) {
       this.entered = true;
       this.game.events.emit("enter-store");
       return;
     }
-
-    for (const door of this.doors) {
-      if (door.node.locked) continue;
-      const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, door.x, door.y);
-      if (dist < TOUCH_RADIUS) {
-        this.entered = true;
-        this.game.events.emit("enter-problem", door.node.id);
-        break;
-      }
+    if (nearDojo) {
+      this.entered = true;
+      this.game.events.emit("enter-dojo");
+      return;
+    }
+    if (nearDoor) {
+      this.entered = true;
+      this.game.events.emit("enter-problem", nearDoor.node.id);
     }
   }
 }

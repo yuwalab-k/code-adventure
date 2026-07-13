@@ -563,40 +563,21 @@ button {
   font-weight: bold;
 }
 
-.boss-sprite {
-  width: 48px;
-  height: 48px;
+.monster-sprite-canvas {
+  image-rendering: pixelated;
   flex: 0 0 auto;
-  background: var(--color-incorrect);
-  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
 }
 
-.monster-cleared .boss-sprite {
+.monster-cleared .monster-sprite-canvas {
   margin: 0 auto 8px;
 }
 
-.boss-sprite.m2 {
-  background: #d97706;
-  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
-}
-
-.boss-sprite.m3 {
-  background: #2563eb;
-  clip-path: circle(50% at 50% 50%);
-}
-
-.boss-sprite.final {
-  width: 64px;
-  height: 64px;
-  background: #7c1d3f;
-  clip-path: polygon(50% 0%, 90% 20%, 100% 60%, 70% 100%, 30% 100%, 0% 60%, 10% 20%);
-}
-
-.boss-sprite.defeated {
-  background: var(--color-correct);
-  opacity: 0.6;
-  clip-path: none;
-  border-radius: 50%;
+.monster-sprite-canvas.defeated {
+  opacity: 0.5;
+  filter: grayscale(1);
 }
 
 .boss-hp-label {
@@ -674,5 +655,44 @@ button {
     transform: translateY(-14px);
     opacity: 0;
   }
+}
+
+/* --- dojo --- */
+
+.dojo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dojo-entry-button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  background: #14101f;
+  color: #fff;
+  border: 1px solid #4a4363;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  font-family: var(--font-body);
+}
+
+.dojo-entry-button:hover {
+  border-color: var(--color-emphasis);
+}
+
+.dojo-entry-name {
+  font-weight: bold;
+}
+
+.dojo-entry-short {
+  font-size: 12px;
+  color: #b9a3ff;
+}
+
+.dojo-detail h3 {
+  color: var(--color-emphasis);
 }
 

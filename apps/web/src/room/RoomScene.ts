@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { generatePlayerTexture, generateMascotTexture } from "../worldmap/pixelTexture";
+import { generatePlayerTexture, generateMascotTexture, generateMonsterTexture } from "../worldmap/pixelTexture";
+import type { MonsterVariant } from "../monsters/monsterFrames";
 
 export interface RoomSpot {
   screen: string;
@@ -37,12 +38,22 @@ interface SpotPosition {
   y: number;
 }
 
+const MONSTER_VARIANT_FOR_SCREEN: Record<string, MonsterVariant> = {
+  s2: "m1",
+  s4: "m2",
+  s6: "m3",
+  s7: "boss",
+};
+
+const LOCKED_TINT = 0x9ca3af;
+const DEFEATED_TINT = 0x86efac;
+
 export class RoomScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
   private mascot!: Phaser.GameObjects.Sprite;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private spotPositions: SpotPosition[] = [];
-  private spotShapes: Record<string, Phaser.GameObjects.Shape> = {};
+  private spotVisuals: Record<string, Phaser.GameObjects.Shape | Phaser.GameObjects.Sprite> = {};
   private spotData: Record<string, RoomSpot> = {};
   private entered = false;
   private moveTarget: Phaser.Math.Vector2 | null = null;
@@ -54,13 +65,14 @@ export class RoomScene extends Phaser.Scene {
   preload() {
     generatePlayerTexture(this, "player");
     generateMascotTexture(this, "mascot-companion");
+    (["m1", "m2", "m3", "boss"] as MonsterVariant[]).forEach((v) => generateMonsterTexture(this, v));
   }
 
   create() {
     this.entered = false;
     this.moveTarget = null;
     this.spotPositions = [];
-    this.spotShapes = {};
+    this.spotVisuals = {};
     this.spotData = {};
 
     this.add.grid(
@@ -84,8 +96,7 @@ export class RoomScene extends Phaser.Scene {
     this.registry.events.on("changedata-spots", (_parent: unknown, value: RoomSpot[]) => {
       value.forEach((spot) => {
         this.spotData[spot.screen] = spot;
-        const shape = this.spotShapes[spot.screen];
-        if (shape) shape.setFillStyle(this.colorFor(spot));
+        this.applyVisualState(spot);
       });
     });
 
@@ -111,11 +122,27 @@ export class RoomScene extends Phaser.Scene {
     this.scale.on("resize", () => this.cameras.main.setZoom(ZOOM));
   }
 
-  private colorFor(spot: RoomSpot): number {
-    if (spot.kind === "plaque") return 0xf1ecfb;
+  private trainingColorFor(spot: RoomSpot): number {
     if (spot.locked) return 0x9ca3af;
     if (spot.defeated) return 0x16a34a;
-    return spot.kind === "training" ? 0x2563eb : 0xe11d48;
+    return 0x2563eb;
+  }
+
+  private applyVisualState(spot: RoomSpot) {
+    const visual = this.spotVisuals[spot.screen];
+    if (!visual) return;
+
+    if (spot.kind === "monster") {
+      const sprite = visual as Phaser.GameObjects.Sprite;
+      if (spot.locked) sprite.setTint(LOCKED_TINT);
+      else if (spot.defeated) sprite.setTint(DEFEATED_TINT);
+      else sprite.clearTint();
+      return;
+    }
+
+    if (spot.kind === "training") {
+      (visual as Phaser.GameObjects.Shape).setFillStyle(this.trainingColorFor(spot));
+    }
   }
 
   private createDoor() {
@@ -126,15 +153,15 @@ export class RoomScene extends Phaser.Scene {
   private createSpot(spot: RoomSpot) {
     const pos = SPOT_POS[spot.screen] ?? { x: ROOM_WIDTH / 2, y: ROOM_HEIGHT / 2 };
     const { x, y } = pos;
-    const color = this.colorFor(spot);
 
-    let shape: Phaser.GameObjects.Shape;
+    let visual: Phaser.GameObjects.Shape | Phaser.GameObjects.Sprite;
     if (spot.kind === "plaque") {
-      shape = this.add.rectangle(x, y, 40, 30, color).setStrokeStyle(2, 0x7c3aed);
+      visual = this.add.rectangle(x, y, 40, 30, 0xf1ecfb).setStrokeStyle(2, 0x7c3aed);
     } else if (spot.kind === "training") {
-      shape = this.add.rectangle(x, y, 34, 34, color).setStrokeStyle(2, 0x2b2440);
+      visual = this.add.rectangle(x, y, 34, 34, this.trainingColorFor(spot)).setStrokeStyle(2, 0x2b2440);
     } else {
-      shape = this.add.triangle(x, y, 0, 32, 32, 32, 16, 0, color).setStrokeStyle(2, 0x2b2440);
+      const variant = MONSTER_VARIANT_FOR_SCREEN[spot.screen] ?? "m1";
+      visual = this.add.sprite(x, y, `monster-${variant}`);
     }
 
     this.add
@@ -142,9 +169,10 @@ export class RoomScene extends Phaser.Scene {
       .setOrigin(0.5, 1)
       .setWordWrapWidth(80);
 
-    this.spotShapes[spot.screen] = shape;
+    this.spotVisuals[spot.screen] = visual;
     this.spotData[spot.screen] = spot;
     this.spotPositions.push({ screen: spot.screen, x, y });
+    this.applyVisualState(spot);
   }
 
   update() {

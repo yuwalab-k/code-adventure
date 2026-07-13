@@ -1,5 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { CheckpointQuiz, type CheckpointQuestion } from "./CheckpointQuiz";
+import { MonsterSprite } from "../monsters/MonsterSprite";
+import type { MonsterVariant } from "../monsters/monsterFrames";
 
 // Groups the checkpoint questions for one screen (S2/S4/S6) into a single
 // "monster" fight: each correct answer is one hit, all correct = defeated.
@@ -52,11 +54,12 @@ export function SmallBossBattle({
   if (questions.length === 0) return null;
 
   const defeated = alreadyDefeated || remaining.length === 0;
+  const variant = `m${((monsterIndex - 1) % 3) + 1}` as MonsterVariant;
 
   if (defeated) {
     return (
       <div className="monster-cleared">
-        <div className={`boss-sprite defeated m${((monsterIndex - 1) % 3) + 1}`} />
+        <MonsterSprite variant={variant} defeated />
         <p>{monsterLabel}をたおした！</p>
       </div>
     );
@@ -67,7 +70,7 @@ export function SmallBossBattle({
   return (
     <Fragment>
       <div className={`battle-monster-row ${shake ? "boss-shake" : ""}`}>
-        <div className={`boss-sprite m${((monsterIndex - 1) % 3) + 1}`} />
+        <MonsterSprite variant={variant} />
         <div className="battle-monster-info">
           <p className="battle-monster-name">{monsterLabel}</p>
           <div className="boss-hp-bar">
