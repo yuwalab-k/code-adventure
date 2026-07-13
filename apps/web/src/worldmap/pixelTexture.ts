@@ -41,11 +41,11 @@ const PLAYER_ROWS = [
 ];
 
 const PLAYER_PALETTE: Record<string, number> = {
-  "2": 0x4a3728, // hair
-  f: 0xffdbac, // skin
-  "1": 0x2b2440, // eyes
-  "3": 0x7c3aed, // shirt
-  "4": 0x2b2440, // pants
+  "2": 0x333333, // hair
+  f: 0xeeeeee, // skin
+  "1": 0x000000, // eyes
+  "3": 0x555555, // shirt
+  "4": 0x000000, // pants
 };
 
 export function generatePlayerTexture(scene: Phaser.Scene, key = "player"): void {

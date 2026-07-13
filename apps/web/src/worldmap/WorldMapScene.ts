@@ -56,9 +56,9 @@ export class WorldMapScene extends Phaser.Scene {
       PLAZA_HEIGHT,
       32,
       32,
-      0xf1ecfb,
+      0xf0f0f0,
       1,
-      0xe4dff2,
+      0xd8d8d8,
       1,
     );
 
@@ -91,18 +91,18 @@ export class WorldMapScene extends Phaser.Scene {
   }
 
   private createStore() {
-    this.add.rectangle(STORE_X, STORE_Y, 64, 56, 0xf59e0b).setStrokeStyle(2, 0x2b2440);
-    this.add.rectangle(STORE_X, STORE_Y - 20, 72, 20, 0xe11d48).setStrokeStyle(2, 0x2b2440);
+    this.add.rectangle(STORE_X, STORE_Y, 64, 56, 0xdddddd).setStrokeStyle(2, 0x000000);
+    this.add.rectangle(STORE_X, STORE_Y - 20, 72, 20, 0x444444).setStrokeStyle(2, 0x000000);
     this.add
-      .text(STORE_X, STORE_Y - 46, "ストア", { fontSize: "11px", color: "#2b2440", align: "center" })
+      .text(STORE_X, STORE_Y - 46, "ストア", { fontSize: "11px", color: "#000000", align: "center" })
       .setOrigin(0.5, 1);
   }
 
   private createDojo() {
-    this.add.rectangle(DOJO_X, DOJO_Y, 64, 56, 0x2563eb).setStrokeStyle(2, 0x2b2440);
-    this.add.rectangle(DOJO_X, DOJO_Y - 20, 72, 20, 0x1e3a8a).setStrokeStyle(2, 0x2b2440);
+    this.add.rectangle(DOJO_X, DOJO_Y, 64, 56, 0xdddddd).setStrokeStyle(2, 0x000000);
+    this.add.rectangle(DOJO_X, DOJO_Y - 20, 72, 20, 0x000000).setStrokeStyle(2, 0x000000);
     this.add
-      .text(DOJO_X, DOJO_Y - 46, "道場", { fontSize: "11px", color: "#2b2440", align: "center" })
+      .text(DOJO_X, DOJO_Y - 46, "道場", { fontSize: "11px", color: "#000000", align: "center" })
       .setOrigin(0.5, 1);
   }
 
@@ -110,16 +110,16 @@ export class WorldMapScene extends Phaser.Scene {
     const x = node.mapX ?? 200 + (index * (PLAZA_WIDTH - 300)) / Math.max(total - 1, 1);
     const y = node.mapY ?? PLAZA_HEIGHT / 2 + 40;
 
-    const color = node.locked ? 0x9ca3af : node.cleared ? 0x16a34a : 0x7c3aed;
-    this.add.rectangle(x, y, 48, 64, color).setStrokeStyle(2, 0x2b2440);
+    const color = node.locked ? 0xcccccc : node.cleared ? 0x666666 : 0x111111;
+    this.add.rectangle(x, y, 48, 64, color).setStrokeStyle(2, 0x000000);
     this.add
-      .text(x, y - 46, node.title, { fontSize: "11px", color: "#2b2440", align: "center" })
+      .text(x, y - 46, node.title, { fontSize: "11px", color: "#000000", align: "center" })
       .setOrigin(0.5, 1)
       .setWordWrapWidth(90);
 
-    this.add.rectangle(x, y + 44, 40, 20, 0xfbf9f5).setStrokeStyle(1, 0x2b2440);
+    this.add.rectangle(x, y + 44, 40, 20, 0xffffff).setStrokeStyle(1, 0x000000);
     this.add
-      .text(x, y + 44, `★${node.difficulty}`, { fontSize: "12px", color: "#2b2440" })
+      .text(x, y + 44, `★${node.difficulty}`, { fontSize: "12px", color: "#000000" })
       .setOrigin(0.5, 0.5);
 
     return { node, x, y };

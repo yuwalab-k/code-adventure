@@ -45,8 +45,8 @@ const MONSTER_VARIANT_FOR_SCREEN: Record<string, MonsterVariant> = {
   s7: "boss",
 };
 
-const LOCKED_TINT = 0x9ca3af;
-const DEFEATED_TINT = 0x86efac;
+const LOCKED_TINT = 0xaaaaaa;
+const DEFEATED_TINT = 0x777777;
 
 export class RoomScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
@@ -82,9 +82,9 @@ export class RoomScene extends Phaser.Scene {
       ROOM_HEIGHT,
       32,
       32,
-      0xf1ecfb,
+      0xf0f0f0,
       1,
-      0xe4dff2,
+      0xd8d8d8,
       1,
     );
 
@@ -123,9 +123,9 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private trainingColorFor(spot: RoomSpot): number {
-    if (spot.locked) return 0x9ca3af;
-    if (spot.defeated) return 0x16a34a;
-    return 0x2563eb;
+    if (spot.locked) return 0xcccccc;
+    if (spot.defeated) return 0x666666;
+    return 0x111111;
   }
 
   private applyVisualState(spot: RoomSpot) {
@@ -146,8 +146,8 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private createDoor() {
-    this.add.rectangle(DOOR_X, DOOR_Y, 40, 16, 0x5c4326).setStrokeStyle(2, 0x2b2440);
-    this.add.text(DOOR_X, DOOR_Y - 16, "出口", { fontSize: "11px", color: "#2b2440" }).setOrigin(0.5, 1);
+    this.add.rectangle(DOOR_X, DOOR_Y, 40, 16, 0x444444).setStrokeStyle(2, 0x000000);
+    this.add.text(DOOR_X, DOOR_Y - 16, "出口", { fontSize: "11px", color: "#000000" }).setOrigin(0.5, 1);
   }
 
   private createSpot(spot: RoomSpot) {
@@ -156,16 +156,16 @@ export class RoomScene extends Phaser.Scene {
 
     let visual: Phaser.GameObjects.Shape | Phaser.GameObjects.Sprite;
     if (spot.kind === "plaque") {
-      visual = this.add.rectangle(x, y, 40, 30, 0xf1ecfb).setStrokeStyle(2, 0x7c3aed);
+      visual = this.add.rectangle(x, y, 40, 30, 0xffffff).setStrokeStyle(2, 0x000000);
     } else if (spot.kind === "training") {
-      visual = this.add.rectangle(x, y, 34, 34, this.trainingColorFor(spot)).setStrokeStyle(2, 0x2b2440);
+      visual = this.add.rectangle(x, y, 34, 34, this.trainingColorFor(spot)).setStrokeStyle(2, 0x000000);
     } else {
       const variant = MONSTER_VARIANT_FOR_SCREEN[spot.screen] ?? "m1";
       visual = this.add.sprite(x, y, `monster-${variant}`);
     }
 
     this.add
-      .text(x, y - 26, spot.label, { fontSize: "10px", color: "#2b2440", align: "center" })
+      .text(x, y - 26, spot.label, { fontSize: "10px", color: "#000000", align: "center" })
       .setOrigin(0.5, 1)
       .setWordWrapWidth(80);
 
