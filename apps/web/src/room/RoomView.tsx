@@ -10,6 +10,7 @@ import type { CheckpointQuestion } from "../problems/CheckpointQuiz";
 import { RoomCanvas } from "./RoomCanvas";
 import type { RoomSpot } from "./RoomScene";
 import { MonsterSprite } from "../monsters/MonsterSprite";
+import { PagedPanel } from "../game/PagedPanel";
 
 const SCREENS = ["s1", "s2", "s3", "s4", "s5", "s6", "s7"] as const;
 type Screen = (typeof SCREENS)[number];
@@ -230,29 +231,44 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
                 部屋にもどる
               </button>
             </div>
-            <p>
-              ★{problem.difficulty} {tags.map((t) => t.name).join(" / ")}
-            </p>
-            <p style={{ whiteSpace: "pre-wrap" }}>{problem.statementMd}</p>
-            <h3>制約</h3>
-            <p style={{ whiteSpace: "pre-wrap" }}>{problem.constraintsMd}</p>
-            {problem.statementNoteMd && (
-              <>
-                <h3>かんたん解説</h3>
-                <p style={{ whiteSpace: "pre-wrap" }}>{problem.statementNoteMd}</p>
-              </>
-            )}
-            <h3>サンプル</h3>
-            {samples.map((sample) => (
-              <div className="sample-box" key={sample.id}>
-                <pre>入力: {sample.input}</pre>
-                <pre>出力: {sample.output}</pre>
-                {sample.explanationMd && <p>{sample.explanationMd}</p>}
-              </div>
-            ))}
-            <a href={problem.atcoderUrl} target="_blank" rel="noreferrer">
-              AtCoderで見る
-            </a>
+            <PagedPanel
+              pages={[
+                <div key="statement">
+                  <p>
+                    ★{problem.difficulty} {tags.map((t) => t.name).join(" / ")}
+                  </p>
+                  <p style={{ whiteSpace: "pre-wrap" }}>{problem.statementMd}</p>
+                </div>,
+                <div key="constraints">
+                  <h3>制約</h3>
+                  <p style={{ whiteSpace: "pre-wrap" }}>{problem.constraintsMd}</p>
+                  {problem.statementNoteMd && (
+                    <>
+                      <h3>かんたん解説</h3>
+                      <p style={{ whiteSpace: "pre-wrap" }}>{problem.statementNoteMd}</p>
+                    </>
+                  )}
+                </div>,
+                ...samples.map((sample, i) => (
+                  <div key={sample.id}>
+                    <h3>
+                      サンプル {i + 1} / {samples.length}
+                    </h3>
+                    <div className="sample-box">
+                      <pre>入力: {sample.input}</pre>
+                      <pre>出力: {sample.output}</pre>
+                      {sample.explanationMd && <p>{sample.explanationMd}</p>}
+                    </div>
+                  </div>
+                )),
+                <div key="link">
+                  <p>問題の全文はAtCoderのページで見られるよ。</p>
+                  <a href={problem.atcoderUrl} target="_blank" rel="noreferrer">
+                    AtCoderで見る
+                  </a>
+                </div>,
+              ]}
+            />
           </div>
         </div>
       )}
@@ -354,12 +370,14 @@ export function RoomView({ problemId, onExit }: { problemId: string; onExit: () 
               <p>この問題はまだ準備中です。他の問題(typical90_a)で試してみてね。</p>
             )}
             <ExplanationCarousel cards={cardsFor("s6")} />
-            {solutions.map((sol) => (
-              <div key={sol.id}>
-                <p>{sol.language}</p>
-                <pre className="code-box">{sol.code}</pre>
-              </div>
-            ))}
+            {solutions
+              .filter((sol) => sol.language === "python")
+              .map((sol) => (
+                <div key={sol.id}>
+                  <p>{sol.language}</p>
+                  <pre className="code-box">{sol.code}</pre>
+                </div>
+              ))}
             <SmallBossBattle
               problemId={id}
               questions={questionsFor("s6")}
