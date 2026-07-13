@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { generatePlayerTexture, generateMascotTexture } from "./pixelTexture";
+import { generatePlayerTexture, generateMascotTexture, generateWorldIconTexture } from "./pixelTexture";
 
 export interface WorldMapNode {
   id: string;
@@ -43,24 +43,14 @@ export class WorldMapScene extends Phaser.Scene {
   preload() {
     generatePlayerTexture(this, "player");
     generateMascotTexture(this, "mascot-companion");
+    generateWorldIconTexture(this, "store");
+    generateWorldIconTexture(this, "dojo");
+    generateWorldIconTexture(this, "door");
   }
 
   create() {
     this.entered = false;
     this.moveTarget = null;
-
-    this.add.grid(
-      PLAZA_WIDTH / 2,
-      PLAZA_HEIGHT / 2,
-      PLAZA_WIDTH,
-      PLAZA_HEIGHT,
-      32,
-      32,
-      0xf0f0f0,
-      1,
-      0xd8d8d8,
-      1,
-    );
 
     this.createStore();
     this.createDojo();
@@ -91,18 +81,16 @@ export class WorldMapScene extends Phaser.Scene {
   }
 
   private createStore() {
-    this.add.rectangle(STORE_X, STORE_Y, 64, 56, 0xdddddd).setStrokeStyle(2, 0x000000);
-    this.add.rectangle(STORE_X, STORE_Y - 20, 72, 20, 0x444444).setStrokeStyle(2, 0x000000);
+    this.add.sprite(STORE_X, STORE_Y, "world-icon-store");
     this.add
-      .text(STORE_X, STORE_Y - 46, "ストア", { fontSize: "11px", color: "#000000", align: "center" })
+      .text(STORE_X, STORE_Y - 26, "ストア", { fontSize: "11px", color: "#000000", align: "center" })
       .setOrigin(0.5, 1);
   }
 
   private createDojo() {
-    this.add.rectangle(DOJO_X, DOJO_Y, 64, 56, 0xdddddd).setStrokeStyle(2, 0x000000);
-    this.add.rectangle(DOJO_X, DOJO_Y - 20, 72, 20, 0x000000).setStrokeStyle(2, 0x000000);
+    this.add.sprite(DOJO_X, DOJO_Y, "world-icon-dojo");
     this.add
-      .text(DOJO_X, DOJO_Y - 46, "道場", { fontSize: "11px", color: "#000000", align: "center" })
+      .text(DOJO_X, DOJO_Y - 26, "道場", { fontSize: "11px", color: "#000000", align: "center" })
       .setOrigin(0.5, 1);
   }
 
@@ -110,17 +98,13 @@ export class WorldMapScene extends Phaser.Scene {
     const x = node.mapX ?? 200 + (index * (PLAZA_WIDTH - 300)) / Math.max(total - 1, 1);
     const y = node.mapY ?? PLAZA_HEIGHT / 2 + 40;
 
-    const color = node.locked ? 0xcccccc : node.cleared ? 0x666666 : 0x111111;
-    this.add.rectangle(x, y, 48, 64, color).setStrokeStyle(2, 0x000000);
+    const tint = node.locked ? 0xaaaaaa : node.cleared ? 0x666666 : 0x111111;
+    this.add.sprite(x, y, "world-icon-door").setTint(tint);
     this.add
-      .text(x, y - 46, node.title, { fontSize: "11px", color: "#000000", align: "center" })
+      .text(x, y - 30, node.title, { fontSize: "11px", color: "#000000", align: "center" })
       .setOrigin(0.5, 1)
       .setWordWrapWidth(90);
-
-    this.add.rectangle(x, y + 44, 40, 20, 0xffffff).setStrokeStyle(1, 0x000000);
-    this.add
-      .text(x, y + 44, `★${node.difficulty}`, { fontSize: "12px", color: "#000000" })
-      .setOrigin(0.5, 0.5);
+    this.add.text(x, y + 24, `★${node.difficulty}`, { fontSize: "11px", color: "#000000" }).setOrigin(0.5, 0);
 
     return { node, x, y };
   }

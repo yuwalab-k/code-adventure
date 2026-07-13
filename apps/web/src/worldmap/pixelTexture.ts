@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { MASCOT_FRAMES, MASCOT_BODY, MASCOT_EYE } from "../mascot/frames";
 import { MONSTER_ROWS, MONSTER_BODY, MONSTER_EYE, type MonsterVariant } from "../monsters/monsterFrames";
+import { WORLD_ICON_ROWS, type WorldIconKind } from "./worldIcons";
 
 export function generatePixelTexture(
   scene: Phaser.Scene,
@@ -69,5 +70,18 @@ export function generateMonsterTexture(scene: Phaser.Scene, variant: MonsterVari
     "2": Phaser.Display.Color.HexStringToColor(MONSTER_EYE[variant]).color,
   };
   generatePixelTexture(scene, key, MONSTER_ROWS[variant], palette, cellSize);
+  return key;
+}
+
+// door/training icons stay near-white so setTint() can fully recolor them
+// for locked/cleared/available state, same convention as monster tinting.
+const TINTABLE_WORLD_ICON_PALETTE: Record<string, number> = { "1": 0xffffff, "2": 0xdddddd };
+const FIXED_WORLD_ICON_PALETTE: Record<string, number> = { "1": 0x222222, "2": 0xffffff };
+const TINTABLE_WORLD_ICONS: WorldIconKind[] = ["door", "training"];
+
+export function generateWorldIconTexture(scene: Phaser.Scene, kind: WorldIconKind, cellSize = 4): string {
+  const key = `world-icon-${kind}`;
+  const palette = TINTABLE_WORLD_ICONS.includes(kind) ? TINTABLE_WORLD_ICON_PALETTE : FIXED_WORLD_ICON_PALETTE;
+  generatePixelTexture(scene, key, WORLD_ICON_ROWS[kind], palette, cellSize);
   return key;
 }

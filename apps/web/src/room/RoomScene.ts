@@ -1,5 +1,10 @@
 import Phaser from "phaser";
-import { generatePlayerTexture, generateMascotTexture, generateMonsterTexture } from "../worldmap/pixelTexture";
+import {
+  generatePlayerTexture,
+  generateMascotTexture,
+  generateMonsterTexture,
+  generateWorldIconTexture,
+} from "../worldmap/pixelTexture";
 import type { MonsterVariant } from "../monsters/monsterFrames";
 
 export interface RoomSpot {
@@ -53,7 +58,7 @@ export class RoomScene extends Phaser.Scene {
   private mascot!: Phaser.GameObjects.Sprite;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private spotPositions: SpotPosition[] = [];
-  private spotVisuals: Record<string, Phaser.GameObjects.Shape | Phaser.GameObjects.Sprite> = {};
+  private spotVisuals: Record<string, Phaser.GameObjects.Sprite> = {};
   private spotData: Record<string, RoomSpot> = {};
   private entered = false;
   private moveTarget: Phaser.Math.Vector2 | null = null;
@@ -66,6 +71,9 @@ export class RoomScene extends Phaser.Scene {
     generatePlayerTexture(this, "player");
     generateMascotTexture(this, "mascot-companion");
     (["m1", "m2", "m3", "boss"] as MonsterVariant[]).forEach((v) => generateMonsterTexture(this, v));
+    generateWorldIconTexture(this, "door");
+    generateWorldIconTexture(this, "plaque");
+    generateWorldIconTexture(this, "training");
   }
 
   create() {
@@ -74,19 +82,6 @@ export class RoomScene extends Phaser.Scene {
     this.spotPositions = [];
     this.spotVisuals = {};
     this.spotData = {};
-
-    this.add.grid(
-      ROOM_WIDTH / 2,
-      ROOM_HEIGHT / 2,
-      ROOM_WIDTH,
-      ROOM_HEIGHT,
-      32,
-      32,
-      0xf0f0f0,
-      1,
-      0xd8d8d8,
-      1,
-    );
 
     this.createDoor();
 
@@ -122,9 +117,9 @@ export class RoomScene extends Phaser.Scene {
     this.scale.on("resize", () => this.cameras.main.setZoom(ZOOM));
   }
 
-  private trainingColorFor(spot: RoomSpot): number {
-    if (spot.locked) return 0xcccccc;
-    if (spot.defeated) return 0x666666;
+  private tintFor(spot: RoomSpot): number {
+    if (spot.locked) return 0xaaaaaa;
+    if (spot.defeated) return 0x777777;
     return 0x111111;
   }
 
@@ -141,24 +136,24 @@ export class RoomScene extends Phaser.Scene {
     }
 
     if (spot.kind === "training") {
-      (visual as Phaser.GameObjects.Shape).setFillStyle(this.trainingColorFor(spot));
+      (visual as Phaser.GameObjects.Sprite).setTint(this.tintFor(spot));
     }
   }
 
   private createDoor() {
-    this.add.rectangle(DOOR_X, DOOR_Y, 40, 16, 0x444444).setStrokeStyle(2, 0x000000);
-    this.add.text(DOOR_X, DOOR_Y - 16, "出口", { fontSize: "11px", color: "#000000" }).setOrigin(0.5, 1);
+    this.add.sprite(DOOR_X, DOOR_Y, "world-icon-door").setTint(0x444444);
+    this.add.text(DOOR_X, DOOR_Y - 22, "出口", { fontSize: "11px", color: "#000000" }).setOrigin(0.5, 1);
   }
 
   private createSpot(spot: RoomSpot) {
     const pos = SPOT_POS[spot.screen] ?? { x: ROOM_WIDTH / 2, y: ROOM_HEIGHT / 2 };
     const { x, y } = pos;
 
-    let visual: Phaser.GameObjects.Shape | Phaser.GameObjects.Sprite;
+    let visual: Phaser.GameObjects.Sprite;
     if (spot.kind === "plaque") {
-      visual = this.add.rectangle(x, y, 40, 30, 0xffffff).setStrokeStyle(2, 0x000000);
+      visual = this.add.sprite(x, y, "world-icon-plaque").setTint(0x222222);
     } else if (spot.kind === "training") {
-      visual = this.add.rectangle(x, y, 34, 34, this.trainingColorFor(spot)).setStrokeStyle(2, 0x000000);
+      visual = this.add.sprite(x, y, "world-icon-training").setTint(this.tintFor(spot));
     } else {
       const variant = MONSTER_VARIANT_FOR_SCREEN[spot.screen] ?? "m1";
       visual = this.add.sprite(x, y, `monster-${variant}`);

@@ -28,7 +28,7 @@ export function WorldMapCanvas({
     const game = new Phaser.Game({
       type: Phaser.AUTO,
       parent: containerRef.current,
-      backgroundColor: "#fbf9f5",
+      backgroundColor: "#ffffff",
       pixelArt: true,
       scale: {
         mode: Phaser.Scale.RESIZE,
