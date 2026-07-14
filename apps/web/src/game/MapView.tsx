@@ -2,25 +2,23 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "../lib/api";
 import { useMascot } from "../mascot/MascotContext";
-import { MAP_TIPS } from "../mascot/sceneTips";
+import { MAP_TIPS, SCENE_TIPS } from "../mascot/sceneTips";
 import { WorldMapCanvas } from "../worldmap/WorldMapCanvas";
-import type { WorldMapNode } from "../worldmap/WorldMapScene";
-import { DojoPanel } from "./DojoPanel";
+import type { MapArea, MapNpc } from "../worldmap/WorldMapScene";
+import { HUD } from "./HUD";
+import { BottomPanel } from "./BottomPanel";
+import { TalkWindow } from "../npc/TalkWindow";
 
 interface MapResponse {
-  player: { level: number; xp: number; coins: number };
-  nodes: WorldMapNode[];
+  player: { rating: number; xp: number; coins: number; clearedCount: number; totalCount: number };
+  areas: MapArea[];
+  npcs: MapNpc[];
 }
 
-export function MapView({
-  onEnterProblem,
-  onEnterStore,
-}: {
-  onEnterProblem: (problemId: string) => void;
-  onEnterStore: () => void;
-}) {
+export function MapView({ onChallenge }: { onChallenge: (problemId: string) => void }) {
   const { say } = useMascot();
-  const [dojoOpen, setDojoOpen] = useState(false);
+  const [currentAreaName, setCurrentAreaName] = useState<string | null>(null);
+  const [nearbyNpcId, setNearbyNpcId] = useState<string | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ["map"],
     queryFn: () => apiFetch<MapResponse>("/map"),
@@ -31,20 +29,43 @@ export function MapView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function handleAreaChanged(areaId: string | null) {
+    const area = data?.areas.find((a) => a.id === areaId);
+    setCurrentAreaName(area?.name ?? null);
+  }
+
+  function handleNpcNearby(problemId: string | null) {
+    setNearbyNpcId(problemId);
+    if (problemId) say(SCENE_TIPS.talk);
+  }
+
+  const nearbyNpc = data?.npcs.find((n) => n.id === nearbyNpcId) ?? null;
+
   return (
     <>
       {isLoading && <p className="game-loading">よみこみちゅう...</p>}
 
       {data && (
-        <WorldMapCanvas
-          nodes={data.nodes}
-          onEnterProblem={onEnterProblem}
-          onEnterStore={onEnterStore}
-          onEnterDojo={() => setDojoOpen(true)}
-        />
+        <>
+          <HUD
+            locationName={currentAreaName}
+            rating={data.player.rating}
+            xp={data.player.xp}
+            coins={data.player.coins}
+            clearedCount={data.player.clearedCount}
+            totalCount={data.player.totalCount}
+          />
+          <WorldMapCanvas
+            areas={data.areas}
+            npcs={data.npcs}
+            onNpcNearby={handleNpcNearby}
+            onAreaChanged={handleAreaChanged}
+          />
+          <BottomPanel>
+            {nearbyNpc && <TalkWindow npc={nearbyNpc} onChallenge={() => onChallenge(nearbyNpc.id)} />}
+          </BottomPanel>
+        </>
       )}
-
-      {dojoOpen && <DojoPanel onClose={() => setDojoOpen(false)} />}
     </>
   );
 }

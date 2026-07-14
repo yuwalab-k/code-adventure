@@ -1,11 +1,11 @@
 import Phaser from "phaser";
 import { MASCOT_FRAMES, MASCOT_BODY, MASCOT_EYE } from "../mascot/frames";
-import { MONSTER_ROWS, MONSTER_BODY, MONSTER_EYE, type MonsterVariant } from "../monsters/monsterFrames";
-import { WORLD_ICON_ROWS, type WorldIconKind } from "./worldIcons";
+import { NPC_ROWS, type NpcMotif } from "../npc/npcFrames";
+import { WORLD_ICON_ROWS, BADGE_ROWS, type WorldIconKind, type BadgeKind } from "./worldIcons";
 
 // One dot size for every pixel-art object in the game world (player, mascot,
-// monsters, buildings, doors) — the grid unit must match everywhere for it
-// to read as one consistent pixel-art world instead of mismatched scales.
+// NPCs, gates) — the grid unit must match everywhere for it to read as one
+// consistent pixel-art world instead of mismatched scales.
 export const PIXEL_UNIT = 1.5;
 
 export function generatePixelTexture(
@@ -68,25 +68,28 @@ export function generateMascotTexture(scene: Phaser.Scene, key = "mascot-compani
   generatePixelTexture(scene, key, MASCOT_FRAMES.idle, MASCOT_PALETTE);
 }
 
-export function generateMonsterTexture(scene: Phaser.Scene, variant: MonsterVariant): string {
-  const key = `monster-${variant}`;
-  const palette: Record<string, number> = {
-    "1": Phaser.Display.Color.HexStringToColor(MONSTER_BODY[variant]).color,
-    "2": Phaser.Display.Color.HexStringToColor(MONSTER_EYE[variant]).color,
-  };
-  generatePixelTexture(scene, key, MONSTER_ROWS[variant], palette);
+// NPCs stay near-white so setTint() can recolor them for locked/cleared state.
+const NPC_PALETTE: Record<string, number> = { "1": 0xffffff, "2": 0x000000 };
+
+export function generateNpcTexture(scene: Phaser.Scene, motif: NpcMotif): string {
+  const key = `npc-${motif}`;
+  generatePixelTexture(scene, key, NPC_ROWS[motif], NPC_PALETTE);
   return key;
 }
 
-// door/training icons stay near-white so setTint() can fully recolor them
-// for locked/cleared/available state, same convention as monster tinting.
-const TINTABLE_WORLD_ICON_PALETTE: Record<string, number> = { "1": 0xffffff, "2": 0xdddddd };
-const FIXED_WORLD_ICON_PALETTE: Record<string, number> = { "1": 0xffffff, "2": 0x333333 };
-const TINTABLE_WORLD_ICONS: WorldIconKind[] = ["door", "training"];
+// gates stay near-white so setTint() can show locked (dim) vs unlocked (bright).
+const WORLD_ICON_PALETTE: Record<string, number> = { "1": 0xffffff };
 
 export function generateWorldIconTexture(scene: Phaser.Scene, kind: WorldIconKind): string {
   const key = `world-icon-${kind}`;
-  const palette = TINTABLE_WORLD_ICONS.includes(kind) ? TINTABLE_WORLD_ICON_PALETTE : FIXED_WORLD_ICON_PALETTE;
-  generatePixelTexture(scene, key, WORLD_ICON_ROWS[kind], palette);
+  generatePixelTexture(scene, key, WORLD_ICON_ROWS[kind], WORLD_ICON_PALETTE);
+  return key;
+}
+
+const BADGE_PALETTE: Record<string, number> = { "1": 0xffffff };
+
+export function generateBadgeTexture(scene: Phaser.Scene, kind: BadgeKind): string {
+  const key = `badge-${kind}`;
+  generatePixelTexture(scene, key, BADGE_ROWS[kind], BADGE_PALETTE, PIXEL_UNIT * 1.5);
   return key;
 }

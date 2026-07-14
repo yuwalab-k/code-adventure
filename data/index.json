@@ -9,7 +9,9 @@
       "二分探索",
       "貪欲"
     ],
-    "file": "typical90_a"
+    "file": "typical90_a",
+    "area_id": "arena",
+    "npc_motif": "engineer"
   },
   {
     "id": "typical90_b",
@@ -23,7 +25,9 @@
       "全探索",
       "括弧列"
     ],
-    "file": "typical90_b"
+    "file": "typical90_b",
+    "area_id": "training_grounds",
+    "npc_motif": "book"
   },
   {
     "id": "typical90_c",
@@ -37,7 +41,9 @@
       "BFS",
       "グラフ"
     ],
-    "file": "typical90_c"
+    "file": "typical90_c",
+    "area_id": "arena",
+    "npc_motif": "robot"
   },
   {
     "id": "typical90_d",
@@ -49,7 +55,9 @@
       "累積和",
       "配列"
     ],
-    "file": "typical90_d"
+    "file": "typical90_d",
+    "area_id": "training_grounds",
+    "npc_motif": "student"
   },
   {
     "id": "typical90_e",
@@ -62,6 +70,8 @@
       "行列累乗",
       "余り"
     ],
-    "file": "typical90_e"
+    "file": "typical90_e",
+    "area_id": "summit",
+    "npc_motif": "computer"
   }
 ]

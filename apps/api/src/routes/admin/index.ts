@@ -1,10 +1,8 @@
 import { Hono } from "hono";
 import { requireAdmin, type AuthEnv } from "../../middleware/auth";
 import usersRouter from "./users";
-import itemsRouter from "./items";
-import glossaryRouter from "./glossary";
-import codeReadingRouter from "./codeReading";
 import problemsRouter from "./problems";
+import areasRouter from "./areas";
 
 const admin = new Hono<AuthEnv>();
 
@@ -13,9 +11,7 @@ const admin = new Hono<AuthEnv>();
 admin.use("*", requireAdmin);
 
 admin.route("/users", usersRouter);
-admin.route("/items", itemsRouter);
-admin.route("/glossary", glossaryRouter);
-admin.route("/code-reading", codeReadingRouter);
 admin.route("/problems", problemsRouter);
+admin.route("/areas", areasRouter);
 
 export default admin;

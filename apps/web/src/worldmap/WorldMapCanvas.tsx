@@ -1,26 +1,24 @@
 import { useEffect, useRef } from "react";
 import Phaser from "phaser";
-import { WorldMapScene, type WorldMapNode } from "./WorldMapScene";
+import { WorldMapScene, type MapArea, type MapNpc } from "./WorldMapScene";
 
 export function WorldMapCanvas({
-  nodes,
-  onEnterProblem,
-  onEnterStore,
-  onEnterDojo,
+  areas,
+  npcs,
+  onNpcNearby,
+  onAreaChanged,
 }: {
-  nodes: WorldMapNode[];
-  onEnterProblem: (problemId: string) => void;
-  onEnterStore: () => void;
-  onEnterDojo: () => void;
+  areas: MapArea[];
+  npcs: MapNpc[];
+  onNpcNearby: (problemId: string | null) => void;
+  onAreaChanged: (areaId: string | null) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
-  const onEnterProblemRef = useRef(onEnterProblem);
-  onEnterProblemRef.current = onEnterProblem;
-  const onEnterStoreRef = useRef(onEnterStore);
-  onEnterStoreRef.current = onEnterStore;
-  const onEnterDojoRef = useRef(onEnterDojo);
-  onEnterDojoRef.current = onEnterDojo;
+  const onNpcNearbyRef = useRef(onNpcNearby);
+  onNpcNearbyRef.current = onNpcNearby;
+  const onAreaChangedRef = useRef(onAreaChanged);
+  onAreaChangedRef.current = onAreaChanged;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -39,10 +37,10 @@ export function WorldMapCanvas({
       scene: [WorldMapScene],
     });
 
-    game.registry.set("nodes", nodes);
-    game.events.on("enter-problem", (problemId: string) => onEnterProblemRef.current(problemId));
-    game.events.on("enter-store", () => onEnterStoreRef.current());
-    game.events.on("enter-dojo", () => onEnterDojoRef.current());
+    game.registry.set("areas", areas);
+    game.registry.set("npcs", npcs);
+    game.events.on("npc-nearby", (problemId: string | null) => onNpcNearbyRef.current(problemId));
+    game.events.on("area-changed", (areaId: string | null) => onAreaChangedRef.current(areaId));
 
     gameRef.current = game;
     return () => {
@@ -53,8 +51,12 @@ export function WorldMapCanvas({
   }, []);
 
   useEffect(() => {
-    gameRef.current?.registry.set("nodes", nodes);
-  }, [nodes]);
+    gameRef.current?.registry.set("areas", areas);
+  }, [areas]);
+
+  useEffect(() => {
+    gameRef.current?.registry.set("npcs", npcs);
+  }, [npcs]);
 
   return <div ref={containerRef} className="game-canvas-fullscreen" />;
 }

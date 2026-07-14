@@ -7,6 +7,7 @@ const DATA_DIR = join(__dirname, "../../../data");
 const OUT_FILE = join(__dirname, "../seed.sql");
 
 const SOLUTION_LANGUAGES = ["python", "cpp", "typescript", "ruby", "php", "rust", "perl"] as const;
+const NPC_MOTIFS = ["student", "engineer", "robot", "book", "computer"] as const;
 
 function sql(value: string | number | boolean | null | undefined): string {
   if (value === null || value === undefined) return "NULL";
@@ -15,8 +16,13 @@ function sql(value: string | number | boolean | null | undefined): string {
   return `'${value.replace(/'/g, "''")}'`;
 }
 
-function requiredLevelFromDifficulty(difficulty: number): number {
-  return (difficulty - 1) * 2 + 1;
+interface AreaEntry {
+  id: string;
+  name: string;
+  position: number;
+  unlock_rating: number;
+  gate_x?: number;
+  gate_y?: number;
 }
 
 interface IndexEntry {
@@ -27,6 +33,8 @@ interface IndexEntry {
   difficulty: number;
   tags: string[];
   file: string;
+  area_id: string;
+  npc_motif: (typeof NPC_MOTIFS)[number];
 }
 
 interface Sample {
@@ -38,11 +46,6 @@ interface Sample {
 interface SolutionEntry {
   code: string;
   steps?: string[] | null;
-}
-
-interface BadSolutionEntry {
-  label: string;
-  code: string;
 }
 
 interface ProblemEntry {
@@ -58,51 +61,7 @@ interface ProblemEntry {
   statement_note?: string;
   constraints_note?: string;
   solutions?: Record<string, SolutionEntry>;
-  bad_solutions?: Record<string, BadSolutionEntry>;
   added_at: string;
-}
-
-interface GlossaryEntry {
-  id: string;
-  name: string;
-  short?: string;
-  description: string;
-  without_label?: string;
-  without_code?: string;
-  with_label?: string;
-  with_code?: string;
-  when_to_use?: string;
-  problems?: string[];
-}
-
-interface CodeReadingEntry {
-  id: string;
-  name: string;
-  short?: string;
-  body: string;
-  python_code?: string;
-  other_note?: string;
-}
-
-interface CheckpointCard {
-  title: string;
-  body: string;
-  variant?: "bad" | "good";
-}
-
-interface CheckpointQuestionEntry {
-  question: string;
-  choices: string[];
-  correct: number;
-  explanation: string;
-}
-
-type CheckpointScreen = "s2" | "s4" | "s6";
-
-interface CheckpointsFile {
-  [problemId: string]: Partial<
-    Record<CheckpointScreen, { cards?: CheckpointCard[]; questions?: CheckpointQuestionEntry[] }>
-  >;
 }
 
 const now = new Date().toISOString();
@@ -113,7 +72,17 @@ function insert(table: string, columns: string[], values: (string | number | boo
   lines.push(`INSERT OR REPLACE INTO ${table} (${columns.join(", ")}) VALUES (${values.map(sql).join(", ")});`);
 }
 
-// --- index.json drives which per-problem files to load, and per-problem tags ---
+// --- areas.json drives which zones exist and their rating gates ---
+const areas: AreaEntry[] = JSON.parse(readFileSync(join(DATA_DIR, "areas.json"), "utf-8"));
+for (const a of areas) {
+  insert(
+    "areas",
+    ["id", "name", "position", "unlock_rating", "gate_x", "gate_y", "created_at", "updated_at"],
+    [a.id, a.name, a.position, a.unlock_rating, a.gate_x ?? null, a.gate_y ?? null, now, now],
+  );
+}
+
+// --- index.json drives which per-problem files to load, and per-problem tags/area/npc ---
 const index: IndexEntry[] = JSON.parse(readFileSync(join(DATA_DIR, "index.json"), "utf-8"));
 const uniqueFiles = [...new Set(index.map((e) => e.file))];
 
@@ -124,20 +93,22 @@ for (const file of uniqueFiles) {
 
   for (const p of contestFile.problems) {
     const indexEntry = index.find((e) => e.id === p.id);
-    const requiredLevel = requiredLevelFromDifficulty(p.difficulty);
+    if (!indexEntry) throw new Error(`No index.json entry for problem ${p.id}`);
 
     insert(
       "problems",
       [
-        "id", "contest", "problem_number", "title", "atcoder_url", "difficulty", "required_level",
+        "id", "contest", "problem_number", "title", "atcoder_url", "difficulty",
+        "area_id", "npc_motif",
         "statement_md", "constraints_md", "constraints_note_md", "statement_note_md",
-        "map_x", "map_y", "map_order", "clear_reward_item_id",
+        "map_x", "map_y", "map_order",
         "is_published", "added_at", "created_at", "updated_at",
       ],
       [
-        p.id, contestFile.contest, p.problem, p.title, p.atcoder_url, p.difficulty, requiredLevel,
+        p.id, contestFile.contest, p.problem, p.title, p.atcoder_url, p.difficulty,
+        indexEntry.area_id, indexEntry.npc_motif,
         p.statement, p.constraints, p.constraints_note ?? null, p.statement_note ?? null,
-        null, null, null, null,
+        null, null, null,
         true, p.added_at, now, now,
       ],
     );
@@ -152,7 +123,7 @@ for (const file of uniqueFiles) {
       insert("problem_tags", ["problem_id", "tag_id"], [p.id, tagName]);
     }
 
-    // samples
+    // samples — these double as the Pyodide judge's test cases
     p.samples.forEach((s, i) => {
       insert(
         "samples",
@@ -161,7 +132,7 @@ for (const file of uniqueFiles) {
       );
     });
 
-    // solutions
+    // solutions — revealed as the editorial only after the player clears the problem
     for (const lang of SOLUTION_LANGUAGES) {
       const sol = p.solutions?.[lang];
       if (!sol) continue;
@@ -171,72 +142,6 @@ for (const file of uniqueFiles) {
         [`${p.id}_solution_${lang}`, p.id, lang, sol.code, sol.steps ? JSON.stringify(sol.steps) : null],
       );
     }
-
-    // bad_solutions
-    for (const lang of SOLUTION_LANGUAGES) {
-      const bad = p.bad_solutions?.[lang];
-      if (!bad) continue;
-      insert(
-        "bad_solutions",
-        ["id", "problem_id", "language", "label", "code"],
-        [`${p.id}_bad_solution_${lang}`, p.id, lang, bad.label, bad.code],
-      );
-    }
-  }
-}
-
-// --- glossary ---
-const glossary: GlossaryEntry[] = JSON.parse(readFileSync(join(DATA_DIR, "glossary.json"), "utf-8"));
-for (const g of glossary) {
-  insert(
-    "glossary_entries",
-    ["id", "name", "short", "description_md", "without_label", "without_code", "with_label", "with_code", "when_to_use_md"],
-    [g.id, g.name, g.short ?? null, g.description, g.without_label ?? null, g.without_code ?? null, g.with_label ?? null, g.with_code ?? null, g.when_to_use ?? null],
-  );
-  for (const problemId of g.problems ?? []) {
-    insert("problem_glossary_links", ["problem_id", "glossary_id"], [problemId, g.id]);
-  }
-}
-
-// --- code_reading ---
-const codeReading: CodeReadingEntry[] = JSON.parse(readFileSync(join(DATA_DIR, "code_reading.json"), "utf-8"));
-for (const c of codeReading) {
-  insert(
-    "code_reading_entries",
-    ["id", "name", "short", "body_md", "python_code", "other_note"],
-    [c.id, c.name, c.short ?? null, c.body, c.python_code ?? null, c.other_note ?? null],
-  );
-}
-
-// --- checkpoints (explanation cards + comprehension-check questions for S2/S4/S6) ---
-// Authored directly for the game, independent of the original data/problems/*.json —
-// not every problem needs this, and it isn't limited to what the old site had.
-const checkpoints: CheckpointsFile = JSON.parse(readFileSync(join(DATA_DIR, "checkpoints.json"), "utf-8"));
-for (const [problemId, screens] of Object.entries(checkpoints)) {
-  for (const [screen, content] of Object.entries(screens) as [CheckpointScreen, (typeof screens)[CheckpointScreen]][]) {
-    content?.cards?.forEach((card, i) => {
-      insert(
-        "explanation_cards",
-        ["id", "problem_id", "screen", "position", "title", "body_md", "variant"],
-        [`${problemId}_ec_${screen}_${i + 1}`, problemId, screen, i + 1, card.title, card.body, card.variant ?? null],
-      );
-    });
-    content?.questions?.forEach((q, i) => {
-      insert(
-        "checkpoint_questions",
-        ["id", "problem_id", "screen", "position", "question_md", "choices_json", "correct_choice_index", "explanation_md"],
-        [
-          `${problemId}_cq_${screen}_${i + 1}`,
-          problemId,
-          screen,
-          i + 1,
-          q.question,
-          JSON.stringify(q.choices),
-          q.correct,
-          q.explanation,
-        ],
-      );
-    });
   }
 }
 

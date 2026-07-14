@@ -32,7 +32,7 @@ async function main() {
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
 
-  const stmt = `INSERT INTO users (id, username, password_hash, display_name, role, avatar_config, xp, level, coins, created_at, updated_at) VALUES (${sqlString(id)}, ${sqlString(username)}, ${sqlString(passwordHash)}, ${sqlString(displayName)}, ${sqlString(role)}, '{}', 0, 1, 0, ${sqlString(now)}, ${sqlString(now)});`;
+  const stmt = `INSERT INTO users (id, username, password_hash, display_name, role, xp, rating, coins, created_at, updated_at) VALUES (${sqlString(id)}, ${sqlString(username)}, ${sqlString(passwordHash)}, ${sqlString(displayName)}, ${sqlString(role)}, 0, 1, 0, ${sqlString(now)}, ${sqlString(now)});`;
 
   const outFile = join(__dirname, "../create-user.sql");
   writeFileSync(outFile, stmt + "\n", "utf-8");

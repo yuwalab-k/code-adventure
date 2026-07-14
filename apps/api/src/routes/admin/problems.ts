@@ -1,17 +1,14 @@
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import { createDb } from "../../db/client";
-import { problems, problemTags, tags, problemGlossaryLinks, glossaryEntries } from "../../db/schema";
+import { problems, problemTags, tags } from "../../db/schema";
 import type { AuthEnv } from "../../middleware/auth";
 import children from "./problemChildren";
 
 const router = new Hono<AuthEnv>();
 
-// The only place required_level is computed — admins set difficulty (the
-// AtCoder ★ scale) and this derives the level gate, per SPEC.md 4.2/DB_DESIGN.md.
-function requiredLevelFromDifficulty(difficulty: number): number {
-  return (difficulty - 1) * 2 + 1;
-}
+const NPC_MOTIFS = ["student", "engineer", "robot", "book", "computer"] as const;
+type NpcMotif = (typeof NPC_MOTIFS)[number];
 
 type ProblemBody = {
   id?: string;
@@ -20,6 +17,8 @@ type ProblemBody = {
   title?: string;
   atcoderUrl?: string;
   difficulty?: number;
+  areaId?: string;
+  npcMotif?: NpcMotif;
   statementMd?: string;
   constraintsMd?: string;
   constraintsNoteMd?: string | null;
@@ -27,7 +26,6 @@ type ProblemBody = {
   mapX?: number | null;
   mapY?: number | null;
   mapOrder?: number | null;
-  clearRewardItemId?: string | null;
   addedAt?: string;
 };
 
@@ -40,13 +38,20 @@ router.post("/", async (c) => {
     !body?.title ||
     !body?.atcoderUrl ||
     body?.difficulty === undefined ||
+    !body?.areaId ||
     !body?.statementMd ||
     !body?.constraintsMd
   ) {
     return c.json(
-      { error: "id, contest, problemNumber, title, atcoderUrl, difficulty, statementMd, constraintsMd are required" },
+      {
+        error:
+          "id, contest, problemNumber, title, atcoderUrl, difficulty, areaId, statementMd, constraintsMd are required",
+      },
       400,
     );
+  }
+  if (body.npcMotif && !NPC_MOTIFS.includes(body.npcMotif)) {
+    return c.json({ error: `invalid npcMotif, expected one of ${NPC_MOTIFS.join(", ")}` }, 400);
   }
 
   const db = createDb(c.env.DB);
@@ -61,7 +66,8 @@ router.post("/", async (c) => {
     title: body.title,
     atcoderUrl: body.atcoderUrl,
     difficulty: body.difficulty,
-    requiredLevel: requiredLevelFromDifficulty(body.difficulty),
+    areaId: body.areaId,
+    npcMotif: body.npcMotif ?? "student",
     statementMd: body.statementMd,
     constraintsMd: body.constraintsMd,
     constraintsNoteMd: body.constraintsNoteMd ?? null,
@@ -69,7 +75,6 @@ router.post("/", async (c) => {
     mapX: body.mapX ?? null,
     mapY: body.mapY ?? null,
     mapOrder: body.mapOrder ?? null,
-    clearRewardItemId: body.clearRewardItemId ?? null,
     isPublished: false,
     addedAt: body.addedAt ?? now,
     createdAt: now,
@@ -83,6 +88,9 @@ router.put("/:id", async (c) => {
   const id = c.req.param("id");
   const body = await c.req.json<ProblemBody>().catch(() => null);
   if (!body) return c.json({ error: "invalid body" }, 400);
+  if (body.npcMotif && !NPC_MOTIFS.includes(body.npcMotif)) {
+    return c.json({ error: `invalid npcMotif, expected one of ${NPC_MOTIFS.join(", ")}` }, 400);
+  }
 
   const db = createDb(c.env.DB);
   const [existing] = await db.select().from(problems).where(eq(problems.id, id)).limit(1);
@@ -90,9 +98,6 @@ router.put("/:id", async (c) => {
 
   const { id: _id, ...rest } = body;
   const update: Partial<typeof problems.$inferInsert> = { ...rest, updatedAt: new Date().toISOString() };
-  if (body.difficulty !== undefined) {
-    update.requiredLevel = requiredLevelFromDifficulty(body.difficulty);
-  }
 
   await db.update(problems).set(update).where(eq(problems.id, id));
   const [updated] = await db.select().from(problems).where(eq(problems.id, id)).limit(1);
@@ -100,8 +105,8 @@ router.put("/:id", async (c) => {
 });
 
 // The default "delete" a problem: unpublish it. Hard-deleting would CASCADE
-// away every student's progress/checkpoint history for the problem, so that's
-// a separate, explicit operation below (see SPEC.md 4.6 / DB_DESIGN.md).
+// away every student's submission history for the problem, so that's a
+// separate, explicit operation below.
 router.put("/:id/publish", async (c) => {
   const id = c.req.param("id");
   const body = await c.req.json<{ isPublished?: boolean }>().catch(() => null);
@@ -123,7 +128,7 @@ router.delete("/:id", async (c) => {
   const confirm = c.req.query("confirm");
   if (confirm !== "true") {
     return c.json(
-      { error: "hard delete removes all student progress for this problem; pass ?confirm=true to proceed" },
+      { error: "hard delete removes all student submissions for this problem; pass ?confirm=true to proceed" },
       400,
     );
   }
@@ -158,28 +163,6 @@ router.put("/:id/tags", async (c) => {
   }
 
   return c.json({ ok: true, tags: body.tags });
-});
-
-router.put("/:id/glossary-links", async (c) => {
-  const id = c.req.param("id");
-  const body = await c.req.json<{ glossaryIds?: string[] }>().catch(() => null);
-  if (!body?.glossaryIds) return c.json({ error: "glossaryIds (string[]) is required" }, 400);
-
-  const db = createDb(c.env.DB);
-  const [existing] = await db.select().from(problems).where(eq(problems.id, id)).limit(1);
-  if (!existing) return c.json({ error: "not found" }, 404);
-
-  for (const glossaryId of body.glossaryIds) {
-    const [entry] = await db.select().from(glossaryEntries).where(eq(glossaryEntries.id, glossaryId)).limit(1);
-    if (!entry) return c.json({ error: `glossary entry not found: ${glossaryId}` }, 400);
-  }
-
-  await db.delete(problemGlossaryLinks).where(eq(problemGlossaryLinks.problemId, id));
-  for (const glossaryId of body.glossaryIds) {
-    await db.insert(problemGlossaryLinks).values({ problemId: id, glossaryId });
-  }
-
-  return c.json({ ok: true, glossaryIds: body.glossaryIds });
 });
 
 router.route("/:problemId", children);

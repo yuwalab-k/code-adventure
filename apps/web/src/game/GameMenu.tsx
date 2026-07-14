@@ -20,7 +20,7 @@ export function GameMenu({ actions = [] }: { actions?: GameMenuAction[] }) {
   return (
     <>
       <button className="game-menu-button" onClick={() => setOpen((v) => !v)}>
-        {open ? "✕" : "☰"} Lv.{user.level}
+        {open ? "✕" : "☰"} R{user.rating}
       </button>
 
       {open && (
@@ -30,7 +30,7 @@ export function GameMenu({ actions = [] }: { actions?: GameMenuAction[] }) {
             <div className="hud-xp-fill" style={{ width: `${xpBarPercent(user.xp)}%` }} />
           </div>
           <p className="game-menu-stat">
-            Lv.{user.level} / {user.coins} コイン
+            レート {user.rating} / {user.coins} pt
           </p>
           <nav className="game-menu-links">
             {actions.map((action) => (

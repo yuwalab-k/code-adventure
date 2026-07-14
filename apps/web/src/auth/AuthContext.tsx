@@ -6,9 +6,8 @@ export interface User {
   username: string;
   displayName: string;
   role: "student" | "admin";
-  avatarConfig: string;
   xp: number;
-  level: number;
+  rating: number;
   coins: number;
 }
 
@@ -50,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus("signed-out");
   }
 
-  // Re-fetches the current user (xp/level/coins) after a reward-granting
+  // Re-fetches the current user (xp/rating/coins) after a reward-granting
   // action, so the HUD reflects the new totals without a full page reload.
   async function refreshUser() {
     const res = await apiFetch<{ user: User }>("/auth/me");
