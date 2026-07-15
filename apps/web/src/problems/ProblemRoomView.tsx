@@ -175,7 +175,7 @@ export function ProblemRoomView({ problemId, onExit }: { problemId: string; onEx
       {levelUpFlash && <div className="level-up-banner">LEVEL UP!</div>}
 
       <div className="panel-header">
-        <p className="battle-monster-name">
+        <p className="panel-title">
           {problem.contest} {problem.problemNumber}
         </p>
         <button className="panel-close" onClick={onExit}>

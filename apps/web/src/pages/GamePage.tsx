@@ -4,8 +4,9 @@ import { GameMenu } from "../game/GameMenu";
 import { MapView } from "../game/MapView";
 import { ProblemListView } from "../problems/ProblemListView";
 import { ProblemRoomView } from "../problems/ProblemRoomView";
+import { AlgoLabView } from "../algolab/AlgoLabView";
 
-type GameView = { type: "map" } | { type: "problemList" } | { type: "room"; problemId: string };
+type GameView = { type: "map" } | { type: "problemList" } | { type: "room"; problemId: string } | { type: "algolab" };
 
 // The whole game (map, problem list, editor) lives at one URL — moving
 // between them is a state change here, not a route change, so it never
@@ -24,13 +25,19 @@ export function GamePage() {
 
   return (
     <main className="game-page">
-      <GameMenu actions={[{ label: "問題一覧", onClick: () => setView({ type: "problemList" }) }]} />
+      <GameMenu
+        actions={[
+          { label: "問題一覧", onClick: () => setView({ type: "problemList" }) },
+          { label: "アルゴリズム理解ステージ", onClick: () => setView({ type: "algolab" }) },
+        ]}
+      />
 
       {view.type === "map" && <MapView onChallenge={(problemId) => setView({ type: "room", problemId })} />}
       {view.type === "problemList" && (
         <ProblemListView onSelect={(problemId) => setView({ type: "room", problemId })} onExit={backToMap} />
       )}
       {view.type === "room" && <ProblemRoomView problemId={view.problemId} onExit={backToMap} />}
+      {view.type === "algolab" && <AlgoLabView onExit={backToMap} />}
     </main>
   );
 }

@@ -32,7 +32,7 @@ export function ProblemListView({
   return (
     <div className="problem-list-view">
       <div className="panel-header">
-        <p className="battle-monster-name">問題一覧</p>
+        <p className="panel-title">問題一覧</p>
         <button className="panel-close" onClick={onExit}>
           マップにもどる
         </button>
