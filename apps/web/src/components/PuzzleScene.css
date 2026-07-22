@@ -1,0 +1,124 @@
+.puzzle-stage {
+  min-height: 360px;
+  padding: 30px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.puzzle-frame {
+  position: relative;
+}
+
+/* The dirt-patch look (rough edges + speck texture) lives on its own layer
+   behind the grid. The wobble filter must not touch .puzzle-grid itself —
+   it displaces every pixel of whatever it's applied to, and the robot/part
+   tokens use exact pixel math to line up with the grid, so filtering their
+   container made them appear to drift outside it at the edges. */
+.puzzle-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--dirt);
+  border-radius: 12px;
+  filter: url(#wobble-roughen);
+}
+
+.puzzle-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='6' height='6'><rect width='1.4' height='1.4' fill='%23b9b2a0'/></svg>");
+  background-size: 10px 10px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.puzzle-grid {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+}
+
+.tok {
+  font-family: "Walter Turncoat", cursive;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.wall-cell {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: visible;
+  z-index: 1;
+}
+
+.floor-cell {
+  position: relative;
+}
+
+.puzzle-token-layer {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.part-chip {
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 15px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  filter: url(#wobble-scribble);
+  white-space: nowrap;
+}
+
+.blank-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.blank-shape {
+  position: absolute;
+  inset: 2px;
+  border-radius: 8px;
+  filter: url(#wobble-blank);
+  border: 2.2px dashed var(--ink);
+}
+
+.blank-cell.active .blank-shape {
+  border: 3px solid var(--ink);
+  border-style: solid;
+  animation: blank-pulse 1.1s ease-in-out infinite;
+}
+
+.blank-cell.filled .blank-shape {
+  border: none;
+  background: var(--ink);
+}
+
+.blank-cell .q {
+  position: relative;
+  font-size: 13px;
+  color: var(--mid);
+}
+
+.blank-cell.active .q {
+  color: var(--ink);
+  font-weight: bold;
+}
+
+@keyframes blank-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}

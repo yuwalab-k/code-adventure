@@ -1,30 +1,29 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { LoginPage } from "./auth/LoginPage";
-import { RequireAuth, RequireAdmin } from "./auth/RequireAuth";
-import { useAuth } from "./auth/AuthContext";
-import { GamePage } from "./pages/GamePage";
-import { AdminHomePage } from "./pages/admin/AdminHomePage";
-import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
-import { Mascot } from "./mascot/Mascot";
+import { useState } from "react";
+import { FieldScene } from "./components/FieldScene";
+import { PuzzleScene } from "./components/PuzzleScene";
+import { WobbleDefs } from "./components/WobbleDefs";
+import { FIELD_STAGE_1, PUZZLE_STAGE_1 } from "./game/stage1";
 
-function HomeRedirect() {
-  const { status, user } = useAuth();
-  if (status === "loading") return null;
-  if (status === "signed-out") return <Navigate to="/login" replace />;
-  return <Navigate to={user?.role === "admin" ? "/admin" : "/map"} replace />;
-}
+type Scene = "field" | "puzzle";
 
 function App() {
+  const [scene, setScene] = useState<Scene>("field");
+  const [repaired, setRepaired] = useState(false);
+
   return (
     <>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/map" element={<RequireAuth><GamePage /></RequireAuth>} />
-        <Route path="/admin" element={<RequireAdmin><AdminHomePage /></RequireAdmin>} />
-        <Route path="/admin/users" element={<RequireAdmin><AdminUsersPage /></RequireAdmin>} />
-        <Route path="*" element={<HomeRedirect />} />
-      </Routes>
-      <Mascot />
+      <WobbleDefs />
+      {scene === "field" ? (
+        <FieldScene stage={FIELD_STAGE_1} repaired={repaired} onReachConsole={() => setScene("puzzle")} />
+      ) : (
+        <PuzzleScene
+          stage={PUZZLE_STAGE_1}
+          onCleared={() => {
+            setRepaired(true);
+            setScene("field");
+          }}
+        />
+      )}
     </>
   );
 }

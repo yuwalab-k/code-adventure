@@ -1,0 +1,38 @@
+.sliding-token {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: transform 140ms ease-out;
+  will-change: transform;
+}
+
+/* a part being pushed feels heavier: slower, with a little settle-overshoot */
+.sliding-token--heavy {
+  transition: transform 230ms cubic-bezier(0.32, 0.06, 0.32, 1.28);
+}
+
+.sliding-token-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sliding-token-inner--land {
+  animation: sliding-token-squash 230ms ease-out;
+}
+
+@keyframes sliding-token-squash {
+  0% {
+    transform: scale(1, 1);
+  }
+  40% {
+    transform: scale(1.1, 0.82);
+  }
+  100% {
+    transform: scale(1, 1);
+  }
+}

@@ -1,1 +1,0 @@
-INSERT INTO users (id, username, password_hash, display_name, role, xp, rating, coins, created_at, updated_at) VALUES ('71300f92-9d2c-4d20-8d1d-511ee12a1d7e', 'kid1', '$2a$10$38oCSAG6hsJT6e4b0qnc2uT98SJSIibv1W3OzoYRo3meOYNZ.cPNW', 'きっど1', 'student', 0, 1, 0, '2026-07-14T12:22:49.644Z', '2026-07-14T12:22:49.644Z');

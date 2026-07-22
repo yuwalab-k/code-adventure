@@ -1,0 +1,61 @@
+.map-wrap {
+  position: relative;
+}
+
+.map {
+  display: grid;
+  grid-auto-rows: 64px;
+}
+
+.field-token-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cell.path {
+  background-image: none;
+  background-color: var(--path);
+}
+
+.cell.console,
+.cell.finish {
+  background-color: var(--path);
+  outline: 2px dashed var(--ink);
+  outline-offset: -6px;
+}
+
+.cell.broken {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--mid) 0,
+    var(--mid) 3px,
+    var(--paper) 3px,
+    var(--paper) 8px
+  );
+}
+
+.broken-mark {
+  width: 55%;
+  height: 55%;
+  background: var(--ink);
+  clip-path: polygon(45% 0%, 60% 0%, 35% 55%, 55% 55%, 25% 100%, 40% 45%, 20% 45%);
+}
+
+.field-icon {
+  width: 68%;
+  height: 68%;
+}
+
+.goal-label {
+  font-size: 7px;
+  line-height: 1.6;
+  text-align: center;
+}

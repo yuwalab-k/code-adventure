@@ -1,0 +1,37 @@
+.viewport {
+  width: 100%;
+  max-width: 640px;
+  background: var(--paper);
+  border: 4px solid var(--ink);
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  font-size: 10px;
+  background: var(--paper);
+  border-bottom: 3px solid var(--ink);
+}
+
+.hud .pos {
+  color: var(--mid);
+}
+
+.grass-bg {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='4' height='4'><rect width='2' height='2' fill='%238a9098'/></svg>");
+  background-size: 8px 8px;
+}
+
+.caption {
+  padding: 10px 14px 14px;
+  font-size: 8px;
+  line-height: 1.9;
+  color: var(--mid);
+  border-top: 3px solid var(--ink);
+}
+
+.caption b {
+  color: var(--ink);
+}
